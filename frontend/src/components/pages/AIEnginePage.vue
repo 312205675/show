@@ -7,11 +7,119 @@
       <p class="hero-sub">大模型驱动的自然语言交互、智能决策与预测分析，让数据自己说话</p>
     </div>
 
+    <!-- ===== 实时交互演示终端 ===== -->
+    <div class="live-demo-section">
+      <div class="live-terminal">
+        <!-- 终端顶部栏 -->
+        <div class="terminal-bar">
+          <div class="terminal-dots">
+            <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+          </div>
+          <div class="terminal-title">
+            <span class="live-indicator"></span>
+            SMART ESTATE AI — 实时交互演示
+          </div>
+          <div class="terminal-controls">
+            <button class="ctrl-btn voice-btn" :class="{ active: voiceEnabled }" @click="toggleVoice" :title="voiceEnabled ? '关闭语音播报' : '开启语音播报'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path v-if="voiceEnabled" d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                <path v-else d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/>
+              </svg>
+            </button>
+            <button class="ctrl-btn pause-btn" :class="{ active: isPaused }" @click="togglePause" :title="isPaused ? '继续播放' : '暂停播放'">
+              <svg v-if="isPaused" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+              </svg>
+              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 3l14 9-14 9V3z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 场景标签 -->
+        <div class="scenario-tabs">
+          <div class="scenario-tab"
+            v-for="(s, i) in liveScenarios" :key="i"
+            :class="{ active: currentScenarioIndex === i, visited: visitedScenarios.has(i) }"
+            @click="jumpToScenario(i)"
+          >
+            <span class="tab-dot" :style="{ background: s.color }"></span>
+            <span class="tab-label">{{ s.title }}</span>
+          </div>
+        </div>
+
+        <!-- 对话区域 -->
+        <div class="terminal-body" ref="terminalBody">
+          <!-- 用户输入 -->
+          <div class="chat-row user-row" :class="{ 'row-enter': showUserRow }">
+            <div class="chat-avatar user-av">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="chat-bubble user-bubble">
+              <span class="bubble-label">自然语言查询</span>
+              <div class="bubble-text">
+                <span class="typed-text">{{ typedQuery }}</span>
+                <span class="cursor-blink" v-if="phase === 'typing-query'">|</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SQL转换展示 -->
+          <div class="sql-preview" v-if="phase === 'thinking' || phase === 'typing-response' || phase === 'paused'">
+            <div class="sql-badge">NL → SQL</div>
+            <code class="sql-code">{{ currentScenarioData?.sqlPreview }}</code>
+          </div>
+
+          <!-- AI思考动画 -->
+          <div class="chat-row ai-row thinking-row" v-if="phase === 'thinking'">
+            <div class="chat-avatar ai-av">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93V12h3.75a2.5 2.5 0 0 1 2.5 2.5v1.75c1.85.35 3.25 1.98 3.25 3.93a4 4 0 1 1-6.5-3.12V14.5a.5.5 0 0 0-.5-.5h-8.5a.5.5 0 0 0-.5.5v2.56A4 4 0 1 1 2 20.18c0-1.95 1.4-3.58 3.25-3.93V14.5A2.5 2.5 0 0 1 7.75 12h3.5V9.93A4.002 4.002 0 0 1 12 2z"/></svg>
+            </div>
+            <div class="thinking-dots">
+              <span class="dot-anim"></span><span class="dot-anim"></span><span class="dot-anim"></span>
+            </div>
+          </div>
+
+          <!-- AI回复 -->
+          <div class="chat-row ai-row" :class="{ 'row-enter': showAiRow }" v-if="phase === 'typing-response' || phase === 'paused'">
+            <div class="chat-avatar ai-av">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93V12h3.75a2.5 2.5 0 0 1 2.5 2.5v1.75c1.85.35 3.25 1.98 3.25 3.93a4 4 0 1 1-6.5-3.12V14.5a.5.5 0 0 0-.5-.5h-8.5a.5.5 0 0 0-.5.5v2.56A4 4 0 1 1 2 20.18c0-1.95 1.4-3.58 3.25-3.93V14.5A2.5 2.5 0 0 1 7.75 12h3.5V9.93A4.002 4.002 0 0 1 12 2z"/></svg>
+            </div>
+            <div class="chat-bubble ai-bubble">
+              <span class="bubble-label ai-label">AI 智能分析</span>
+              <div class="bubble-text">
+                <span class="typed-text">{{ typedResponse }}</span>
+                <span class="cursor-blink" v-if="phase === 'typing-response'">|</span>
+              </div>
+              <!-- 技术标签 -->
+              <div class="response-techs" v-if="phase === 'paused' || phase === 'typing-response'">
+                <span class="r-tech" v-for="t in currentScenarioData?.techs" :key="t">{{ t }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 进度指示 -->
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{ width: scenarioProgress + '%' }"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 扫描线效果 -->
+      <div class="scanline"></div>
+      <!-- 四角装饰 -->
+      <div class="corner-deco top-left"></div>
+      <div class="corner-deco top-right"></div>
+      <div class="corner-deco bottom-left"></div>
+      <div class="corner-deco bottom-right"></div>
+    </div>
+
     <!-- 流程图区域 -->
     <div class="flow-section">
       <div class="flow-pipeline">
         <!-- 交互层 -->
-        <div class="flow-layer">
+        <div class="flow-layer" :class="{ 'layer-highlight': currentScenarioIndex === 0 }">
           <div class="flow-layer-label">
             <span class="layer-icon">💬</span>
             <span>智能交互层</span>
@@ -32,7 +140,7 @@
         </div>
 
         <!-- 认知层 -->
-        <div class="flow-layer">
+        <div class="flow-layer" :class="{ 'layer-highlight': currentScenarioIndex === 1 }">
           <div class="flow-layer-label">
             <span class="layer-icon">🧠</span>
             <span>认知理解层</span>
@@ -53,7 +161,7 @@
         </div>
 
         <!-- 推理层 -->
-        <div class="flow-layer">
+        <div class="flow-layer" :class="{ 'layer-highlight': currentScenarioIndex === 2 }">
           <div class="flow-layer-label">
             <span class="layer-icon">⚡</span>
             <span>推理决策层</span>
@@ -74,7 +182,7 @@
         </div>
 
         <!-- 输出层 -->
-        <div class="flow-layer">
+        <div class="flow-layer" :class="{ 'layer-highlight': currentScenarioIndex === 3 }">
           <div class="flow-layer-label">
             <span class="layer-icon">🎯</span>
             <span>智能输出层</span>
@@ -86,36 +194,6 @@
               <div class="node-name">{{ o.name }}</div>
               <div class="node-tag">{{ o.tag }}</div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 核心场景演示区 -->
-    <div class="demo-section">
-      <div class="section-header">
-        <div class="section-line"></div>
-        <span class="section-title">核心智能场景</span>
-        <div class="section-line"></div>
-      </div>
-      <div class="demo-grid">
-        <div class="demo-card" v-for="d in demoScenarios" :key="d.title" :style="{ '--card-accent': d.color }">
-          <div class="demo-header">
-            <span class="demo-icon">{{ d.icon }}</span>
-            <span class="demo-title">{{ d.title }}</span>
-          </div>
-          <div class="demo-dialog">
-            <div class="dialog-user">
-              <span class="dialog-avatar user-avatar">老板</span>
-              <span class="dialog-text">{{ d.userQuery }}</span>
-            </div>
-            <div class="dialog-ai">
-              <span class="dialog-avatar ai-avatar">AI</span>
-              <span class="dialog-text ai-text">{{ d.aiResponse }}</span>
-            </div>
-          </div>
-          <div class="demo-tech">
-            <span class="demo-tech-tag" v-for="t in d.techs" :key="t">{{ t }}</span>
           </div>
         </div>
       </div>
@@ -158,6 +236,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+
+// ====== 基础数据 ======
 const interactNodes = [
   { name: '自然语言查询', icon: '🗣️', tag: 'Text/Voice Input', color: '#60a5fa' },
   { name: '智能问答', icon: '💬', tag: 'Multi-turn Dialog', color: '#22c55e' },
@@ -187,41 +268,246 @@ const outputNodes = [
   { name: '趋势预测', icon: '🔮', tag: '时序推理', color: '#a78bfa' },
 ]
 
-const demoScenarios = [
+// ====== 实时演示场景数据 ======
+interface LiveScenario {
+  title: string
+  color: string
+  userQuery: string
+  sqlPreview: string
+  aiResponse: string
+  techs: string[]
+}
+
+const liveScenarios: LiveScenario[] = [
   {
-    title: '自然语言查询报表',
-    icon: '🗣️',
+    title: '自然语言查询',
     color: '#60a5fa',
-    userQuery: '"裕华区这个月卖了多少套？跟长安区比怎么样？"',
+    userQuery: '裕华区这个月卖了多少套？跟长安区比怎么样？',
+    sqlPreview: "SELECT r.name, COUNT(*) AS deals, AVG(u.price) AS avg_price FROM deals d JOIN units u ON d.unit_id=u.id JOIN projects p ON u.project_id=p.id JOIN regions r ON p.region_id=r.id WHERE d.deal_date >= '2025-04-01' AND r.name IN ('裕华区','长安区') GROUP BY r.name ORDER BY deals DESC;",
     aiResponse: '裕华区本月成交180套，环比+12%，均价17500元/㎡；长安区成交210套但环比-3%。裕华区虽然量少但增速更快，建议加推热门户型。',
     techs: ['NL2SQL', 'RAG', 'LLM Reasoning'],
   },
   {
-    title: 'AI辅助定价决策',
-    icon: '💰',
+    title: '智能定价决策',
     color: '#22c55e',
-    userQuery: '"龙泉湖项目要不要降价？降多少合适？"',
+    userQuery: '龙泉湖项目要不要降价？降多少合适？',
+    sqlPreview: "SELECT p.name, p.avg_price, p.sales_cycle, c.competitor_avg FROM projects p LEFT JOIN competitor_analysis c ON p.region_id=c.region_id WHERE p.name = '龙泉湖';",
     aiResponse: '龙泉湖项目去化周期22个月(红灯)，周边竞品均价12800。建议下调至13200元/㎡(降6%)，预计去化周期缩短至14个月，利润率从8%降至5.2%但总利润增加1200万。',
     techs: ['XGBoost', '因果推断', '优化求解'],
   },
   {
-    title: '智能预警与根因分析',
-    icon: '🚨',
+    title: '预警根因分析',
     color: '#ef4444',
-    userQuery: '"为什么这个月回款率突然降了？"',
+    userQuery: '为什么这个月回款率突然降了？',
+    sqlPreview: "SELECT region, SUM(amount) AS total, SUM(CASE WHEN status='overdue' THEN amount ELSE 0 END)/SUM(amount) AS overdue_rate FROM payment_records WHERE month = CURRENT_MONTH GROUP BY region ORDER BY overdue_rate DESC;",
     aiResponse: '回款率从78%降至65%，根因分析：①桥西区3个项目按揭放款延迟(占58%)；②高新区首付逾期率升至22%(占30%)；③季节因素(占12%)。建议：对接公积金中心加速审批+逾期专项催收。',
     techs: ['异常检测', '因果推断', 'DoWhy'],
   },
   {
-    title: '预测与趋势研判',
-    icon: '🔮',
+    title: '趋势预测研判',
     color: '#a78bfa',
-    userQuery: '"下半年市场会怎么样？我们能不能完成目标？"',
+    userQuery: '下半年市场会怎么样？我们能不能完成目标？',
+    sqlPreview: "WITH forecast AS (SELECT prophet_predict(sales_amount, '2025-Q3', '2025-Q4', confidence=>0.95) AS pred FROM monthly_sales) SELECT pred.q3_estimate, pred.q4_estimate, pred.annual_completion FROM forecast;",
     aiResponse: '基于Prophet+政策变量预测：Q3销售额预计38亿(置信区间34-42亿)，Q4预计45亿(受政策利好)。全年完成率预计92%，缺口9.6亿。建议Q3加大渠道投放+Q4推出2个新盘补缺口。',
     techs: ['Prophet', '蒙特卡洛模拟', 'LLM合成'],
   },
+  {
+    title: '客户画像洞察',
+    color: '#06b6d4',
+    userQuery: '我们高端项目的客户都有什么特征？哪里还能找到类似客户？',
+    sqlPreview: "SELECT c.age_group, c.income_level, c.occupation, COUNT(*) AS cnt, shap_explain(c.*) AS top_features FROM customers c JOIN deals d ON c.id=d.customer_id JOIN projects p ON d.project_id=p.id WHERE p.tier='luxury' GROUP BY c.age_group, c.income_level, c.occupation ORDER BY cnt DESC LIMIT 10;",
+    aiResponse: '高端客户核心画像：35-50岁(72%)、企业主/高管(65%)、家庭年收入80万+(58%)。关键决策因子：学区(32%)、圈层社交(25%)、投资回报(22%)。建议重点拓展金融街CBD和高新区产业园客户。',
+    techs: ['SHAP', '聚类分析', '知识图谱'],
+  },
+  {
+    title: '渠道效果归因',
+    color: '#f59e0b',
+    userQuery: '各渠道的投入产出比怎么样？哪些渠道值得加大投放？',
+    sqlPreview: "SELECT ch.name, ch.cost, COUNT(d.id) AS deals, SUM(d.amount)/ch.cost AS roi, causal_effect(ch.cost, d.amount) AS true_effect FROM channels ch LEFT JOIN deals d ON ch.id=d.channel_id GROUP BY ch.name ORDER BY roi DESC;",
+    aiResponse: '渠道ROI排名：①自然来访 1:18 ②老带新 1:15 ③贝壳 1:8 ④抖音 1:5 ⑤户外广告 1:2。因果推断显示贝壳真实贡献被高估20%(混淆变量：项目地段)，抖音被低估35%(长尾效应)。建议削减户外预算50%→转投抖音信息流。',
+    techs: ['因果推断', 'CausalML', 'SHAP'],
+  },
 ]
 
+// ====== 打字动画状态机 ======
+type Phase = 'idle' | 'typing-query' | 'thinking' | 'typing-response' | 'paused'
+
+const currentScenarioIndex = ref(0)
+const phase = ref<Phase>('idle')
+const typedQuery = ref('')
+const typedResponse = ref('')
+const voiceEnabled = ref(true)
+const isPaused = ref(false)
+const visitedScenarios = ref<Set<number>>(new Set())
+const terminalBody = ref<HTMLElement | null>(null)
+const showUserRow = ref(false)
+const showAiRow = ref(false)
+
+let typeTimer: ReturnType<typeof setTimeout> | null = null
+let scenarioTimer: ReturnType<typeof setTimeout> | null = null
+let thinkTimer: ReturnType<typeof setTimeout> | null = null
+
+const currentScenarioData = computed(() => liveScenarios[currentScenarioIndex.value])
+
+const scenarioProgress = computed(() => {
+  const total = liveScenarios.length
+  if (phase.value === 'idle') return ((currentScenarioIndex.value) / total) * 100
+  return ((currentScenarioIndex.value + 1) / total) * 100
+})
+
+// ====== 语音合成 ======
+function speak(text: string, rate = 1.1) {
+  if (!voiceEnabled.value || !window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = 'zh-CN'
+  utterance.rate = rate
+  utterance.pitch = 1.0
+  // 尝试选择中文语音
+  const voices = window.speechSynthesis.getVoices()
+  const zhVoice = voices.find(v => v.lang.includes('zh'))
+  if (zhVoice) utterance.voice = zhVoice
+  window.speechSynthesis.speak(utterance)
+}
+
+function stopSpeech() {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel()
+  }
+}
+
+// ====== 打字效果 ======
+function typeString(target: 'query' | 'response', text: string, startIndex: number, onDone: () => void) {
+  if (isPaused.value) return
+  if (startIndex >= text.length) {
+    onDone()
+    return
+  }
+  const char = text[startIndex]
+  if (target === 'query') {
+    typedQuery.value += char
+  } else {
+    typedResponse.value += char
+  }
+  // 标点和中文稍慢，英文和数字稍快
+  const delay = /[，。！？、；：""''】]/.test(char) ? 80 : /[，；]/.test(char) ? 60 : 35
+  typeTimer = setTimeout(() => {
+    typeString(target, text, startIndex + 1, onDone)
+  }, delay)
+}
+
+function scrollToBottom() {
+  nextTick(() => {
+    if (terminalBody.value) {
+      terminalBody.value.scrollTop = terminalBody.value.scrollHeight
+    }
+  })
+}
+
+// ====== 场景播放控制 ======
+function startScenario(index: number) {
+  currentScenarioIndex.value = index
+  visitedScenarios.value.add(index)
+  typedQuery.value = ''
+  typedResponse.value = ''
+  showUserRow.value = false
+  showAiRow.value = false
+  phase.value = 'idle'
+
+  // 稍延迟开始，让UI先渲染
+  setTimeout(() => {
+    if (isPaused.value) return
+    showUserRow.value = true
+    phase.value = 'typing-query'
+    scrollToBottom()
+
+    const scenario = liveScenarios[index]
+    typeString('query', scenario.userQuery, 0, () => {
+      phase.value = 'thinking'
+      scrollToBottom()
+
+      // 语音播报用户查询
+      speak(scenario.userQuery)
+
+      // 思考1.5秒后开始回复
+      thinkTimer = setTimeout(() => {
+        if (isPaused.value) return
+        phase.value = 'typing-response'
+        showAiRow.value = true
+        scrollToBottom()
+
+        // 停止用户查询语音，播报AI回复
+        stopSpeech()
+        typeString('response', scenario.aiResponse, 0, () => {
+          phase.value = 'paused'
+          // 语音播报AI回复
+          speak(scenario.aiResponse, 1.2)
+          scrollToBottom()
+
+          // 暂停4秒后切换下一个场景
+          scenarioTimer = setTimeout(() => {
+            const nextIdx = (currentScenarioIndex.value + 1) % liveScenarios.length
+            startScenario(nextIdx)
+          }, 4000)
+        })
+      }, 1500)
+    })
+  }, 600)
+}
+
+function jumpToScenario(index: number) {
+  clearAllTimers()
+  stopSpeech()
+  startScenario(index)
+}
+
+function togglePause() {
+  isPaused.value = !isPaused.value
+  if (isPaused.value) {
+    clearAllTimers()
+    stopSpeech()
+    phase.value = 'paused'
+  } else {
+    // 重新开始当前场景
+    startScenario(currentScenarioIndex.value)
+  }
+}
+
+function toggleVoice() {
+  voiceEnabled.value = !voiceEnabled.value
+  if (!voiceEnabled.value) {
+    stopSpeech()
+  }
+}
+
+function clearAllTimers() {
+  if (typeTimer) clearTimeout(typeTimer)
+  if (scenarioTimer) clearTimeout(scenarioTimer)
+  if (thinkTimer) clearTimeout(thinkTimer)
+  typeTimer = null
+  scenarioTimer = null
+  thinkTimer = null
+}
+
+// 监听打字时自动滚动
+watch([typedQuery, typedResponse], () => {
+  scrollToBottom()
+})
+
+onMounted(() => {
+  // 预加载语音
+  if (window.speechSynthesis) {
+    window.speechSynthesis.getVoices()
+  }
+  startScenario(0)
+})
+
+onUnmounted(() => {
+  clearAllTimers()
+  stopSpeech()
+})
+
+// ====== 技术术语和能力指标数据 ======
 const techTerms = [
   { name: 'LLM', fullName: 'Large Language Model 大语言模型', desc: '千亿参数级语言模型，支持自然语言理解、推理与生成，私有化部署保障数据安全', color: '#60a5fa', scene: '自然语言查询转SQL、智能报告生成、对话式数据分析' },
   { name: 'RAG', fullName: 'Retrieval-Augmented Generation 检索增强生成', desc: '结合向量检索与LLM生成，让AI回答基于企业真实数据而非编造', color: '#22c55e', scene: '基于历史报告和行业数据的智能问答，杜绝"AI幻觉"' },
@@ -297,10 +583,428 @@ const capacityItems = [
   margin: 0;
 }
 
+/* ===== Live Demo Terminal ===== */
+.live-demo-section {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(96, 165, 250, 0.15);
+  background: linear-gradient(145deg, rgba(15, 20, 30, 0.95), rgba(10, 14, 22, 0.98));
+  box-shadow: 0 0 30px rgba(96, 165, 250, 0.06), inset 0 1px 0 rgba(96, 165, 250, 0.1);
+}
+
+.live-terminal {
+  display: flex;
+  flex-direction: column;
+}
+
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(20, 25, 35, 0.9);
+  border-bottom: 1px solid rgba(96, 165, 250, 0.1);
+}
+
+.terminal-dots {
+  display: flex;
+  gap: 6px;
+  .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    &.red { background: #ef4444; }
+    &.yellow { background: #f59e0b; }
+    &.green { background: #22c55e; }
+  }
+}
+
+.terminal-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(96, 165, 250, 0.7);
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.live-indicator {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: live-pulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.terminal-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.ctrl-btn {
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+
+  &:hover {
+    border-color: rgba(96, 165, 250, 0.3);
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.08);
+  }
+
+  &.active {
+    border-color: rgba(96, 165, 250, 0.4);
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.12);
+  }
+}
+
+/* 场景标签 */
+.scenario-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 12px;
+  background: rgba(15, 18, 25, 0.6);
+  border-bottom: 1px solid rgba(96, 165, 250, 0.06);
+  overflow-x: auto;
+
+  &::-webkit-scrollbar { height: 3px; }
+  &::-webkit-scrollbar-thumb { background: rgba(96, 165, 250, 0.2); border-radius: 2px; }
+}
+
+.scenario-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s;
+  border: 1px solid transparent;
+
+  .tab-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    opacity: 0.5;
+    transition: all 0.3s;
+  }
+
+  &:hover {
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  &.active {
+    color: #e2e8f0;
+    background: rgba(96, 165, 250, 0.08);
+    border-color: rgba(96, 165, 250, 0.2);
+
+    .tab-dot {
+      opacity: 1;
+      box-shadow: 0 0 8px currentColor;
+    }
+  }
+
+  &.visited {
+    color: #94a3b8;
+  }
+}
+
+/* 终端对话区域 */
+.terminal-body {
+  padding: 16px;
+  min-height: 280px;
+  max-height: 420px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: rgba(96, 165, 250, 0.15); border-radius: 2px; }
+}
+
+.chat-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  animation: row-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes row-slide-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chat-avatar {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-av {
+  background: rgba(96, 165, 250, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.ai-av {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.chat-bubble {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  max-width: calc(100% - 42px);
+}
+
+.user-bubble {
+  background: rgba(96, 165, 250, 0.06);
+  border: 1px solid rgba(96, 165, 250, 0.12);
+}
+
+.ai-bubble {
+  background: rgba(34, 197, 94, 0.04);
+  border: 1px solid rgba(34, 197, 94, 0.1);
+}
+
+.bubble-label {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  background: rgba(96, 165, 250, 0.1);
+  color: #60a5fa;
+
+  &.ai-label {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+  }
+}
+
+.bubble-text {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.typed-text {
+  /* 打字文本 */
+}
+
+.cursor-blink {
+  display: inline-block;
+  color: #60a5fa;
+  font-weight: 300;
+  animation: blink-cursor 0.8s step-end infinite;
+}
+
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* SQL预览 */
+.sql-preview {
+  margin: 4px 0 4px 42px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.04);
+  border: 1px solid rgba(245, 158, 11, 0.1);
+  animation: sql-fade-in 0.5s ease;
+  overflow-x: auto;
+
+  &::-webkit-scrollbar { height: 3px; }
+  &::-webkit-scrollbar-thumb { background: rgba(245, 158, 11, 0.2); border-radius: 2px; }
+}
+
+@keyframes sql-fade-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.sql-badge {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.sql-code {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #94a3b8;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* 思考动画 */
+.thinking-dots {
+  display: flex;
+  gap: 4px;
+  padding: 12px 0;
+  align-items: center;
+
+  .dot-anim {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: dot-bounce 1.4s ease-in-out infinite;
+
+    &:nth-child(2) { animation-delay: 0.16s; }
+    &:nth-child(3) { animation-delay: 0.32s; }
+  }
+}
+
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* 技术标签 */
+.response-techs {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(34, 197, 94, 0.08);
+  flex-wrap: wrap;
+}
+
+.r-tech {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(34, 197, 94, 0.08);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.15);
+}
+
+/* 进度条 */
+.progress-bar {
+  height: 2px;
+  background: rgba(96, 165, 250, 0.08);
+  border-radius: 1px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #60a5fa, #a78bfa, #22c55e);
+  border-radius: 1px;
+  transition: width 0.8s ease;
+  box-shadow: 0 0 8px rgba(96, 165, 250, 0.4);
+}
+
+/* 扫描线 */
+.scanline {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0; right: 0;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, rgba(96, 165, 250, 0.03), transparent);
+    animation: scanline-sweep 4s linear infinite;
+  }
+}
+
+@keyframes scanline-sweep {
+  0% { top: -100%; }
+  100% { top: 200%; }
+}
+
+/* 四角装饰 */
+.corner-deco {
+  position: absolute;
+  width: 16px; height: 16px;
+  pointer-events: none;
+  z-index: 6;
+
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    background: rgba(96, 165, 250, 0.3);
+  }
+
+  &.top-left {
+    top: 0; left: 0;
+    &::before { top: 0; left: 0; width: 16px; height: 1px; }
+    &::after { top: 0; left: 0; width: 1px; height: 16px; }
+  }
+  &.top-right {
+    top: 0; right: 0;
+    &::before { top: 0; right: 0; width: 16px; height: 1px; }
+    &::after { top: 0; right: 0; width: 1px; height: 16px; }
+  }
+  &.bottom-left {
+    bottom: 0; left: 0;
+    &::before { bottom: 0; left: 0; width: 16px; height: 1px; }
+    &::after { bottom: 0; left: 0; width: 1px; height: 16px; }
+  }
+  &.bottom-right {
+    bottom: 0; right: 0;
+    &::before { bottom: 0; right: 0; width: 16px; height: 1px; }
+    &::after { bottom: 0; right: 0; width: 1px; height: 16px; }
+  }
+}
+
 /* ===== Flow Section ===== */
 .flow-section { padding: 10px 0; }
 .flow-pipeline { display: flex; flex-direction: column; gap: 0; }
-.flow-layer { display: flex; flex-direction: column; gap: 8px; }
+.flow-layer {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.5s ease;
+
+  &.layer-highlight {
+    background: rgba(96, 165, 250, 0.04);
+    border: 1px solid rgba(96, 165, 250, 0.1);
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.05);
+  }
+}
 .flow-layer-label {
   display: flex; align-items: center; gap: 8px;
   font-size: 12px; font-weight: 600; color: var(--text-title, #e2e8f0);
@@ -371,66 +1075,10 @@ const capacityItems = [
 @keyframes flow-down { 0% { top: -100%; } 100% { top: 100%; } }
 .connector-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-caption, #64748b); letter-spacing: 0.5px; }
 
-/* ===== Demo Section ===== */
-.demo-section { padding: 4px 0; }
+/* ===== Section Header ===== */
 .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .section-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, rgba(96, 165, 250, 0.2), transparent); }
 .section-title { font-size: 13px; font-weight: 600; color: var(--text-title, #e2e8f0); white-space: nowrap; letter-spacing: 1px; }
-
-.demo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 10px;
-}
-.demo-card {
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: var(--card-bg, #161B22);
-  border-left: 3px solid var(--card-accent, #60a5fa);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    border-color: color-mix(in srgb, var(--card-accent, #60a5fa) 30%, rgba(255,255,255,0.06));
-  }
-}
-.demo-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-.demo-icon { font-size: 18px; }
-.demo-title { font-size: 13px; font-weight: 600; color: var(--text-title, #e2e8f0); }
-.demo-dialog { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
-.dialog-user, .dialog-ai { display: flex; gap: 8px; align-items: flex-start; }
-.dialog-avatar {
-  width: 30px; height: 30px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 700; flex-shrink: 0;
-}
-.user-avatar {
-  background: rgba(96, 165, 250, 0.12); color: var(--primary, #60a5fa);
-}
-.ai-avatar {
-  background: rgba(34, 197, 94, 0.12); color: var(--success, #22c55e);
-}
-.dialog-text {
-  font-size: 11px; color: var(--text-body, #cbd5e1); line-height: 1.6;
-  padding: 8px 10px; border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
-}
-.ai-text {
-  background: rgba(34, 197, 94, 0.05);
-  border: 1px solid rgba(34, 197, 94, 0.1);
-}
-.demo-tech { display: flex; gap: 6px; flex-wrap: wrap; }
-.demo-tech-tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(96, 165, 250, 0.08);
-  color: var(--primary, #60a5fa);
-  border: 1px solid rgba(96, 165, 250, 0.15);
-}
 
 /* ===== Tech Section ===== */
 .tech-section { padding: 4px 0; }
@@ -516,8 +1164,11 @@ const capacityItems = [
 
 @media (max-width: 768px) {
   .flow-nodes, .flow-nodes.center-nodes { grid-template-columns: repeat(2, 1fr); }
-  .demo-grid { grid-template-columns: 1fr; }
   .tech-grid { grid-template-columns: 1fr; }
   .capacity-grid { grid-template-columns: repeat(3, 1fr); }
+  .scenario-tabs { padding: 6px 8px; }
+  .terminal-body { min-height: 240px; padding: 12px; }
+  .bubble-text { font-size: 12px; }
+  .sql-preview { margin-left: 0; }
 }
 </style>

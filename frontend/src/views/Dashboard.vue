@@ -48,7 +48,20 @@
         <!-- Page 0: Executive Dashboard -->
         <div class="page-slide">
           <!-- 2D Mode -->
-          <div v-if="!themeStore.is3D" class="exec-layout">
+          <div v-if="!themeStore.is3D" class="exec-layout" :class="'layout-' + layoutTemplate">
+
+            <!-- ===== Layout Template Switcher ===== -->
+            <div class="layout-switcher">
+              <button v-for="t in layoutTemplates" :key="t.key" class="layout-btn" :class="{ active: layoutTemplate === t.key }" @click="switchLayout(t.key)" :title="t.label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <template v-if="t.key === 'classic'"><rect x="2" y="2" width="5" height="20" rx="1"/><rect x="8" y="2" width="10" height="20" rx="1"/><rect x="19" y="2" width="4" height="20" rx="1"/></template>
+                  <template v-else-if="t.key === 'focus'"><rect x="1" y="2" width="3" height="20" rx="0.5" opacity="0.5"/><rect x="5" y="2" width="14" height="20" rx="1" stroke-width="2"/><rect x="20" y="2" width="3" height="20" rx="0.5" opacity="0.5"/></template>
+                  <template v-else-if="t.key === 'dual'"><rect x="2" y="2" width="9" height="9" rx="1"/><rect x="12" y="2" width="10" height="9" rx="1"/><rect x="2" y="12" width="20" height="10" rx="1"/></template>
+                  <template v-else-if="t.key === 'grid'"><rect x="2" y="2" width="6" height="20" rx="1"/><rect x="9" y="2" width="6" height="20" rx="1"/><rect x="16" y="2" width="6" height="20" rx="1"/></template>
+                </svg>
+                <span>{{ t.label }}</span>
+              </button>
+            </div>
 
             <!-- ===== TOP KPI BANNER ===== -->
             <section class="kpi-banner">
@@ -581,7 +594,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, computed, defineAsyncComponent, markRaw, type Component } from 'vue'
+import { onMounted, onUnmounted, ref, computed, defineAsyncComponent, markRaw, watch, type Component } from 'vue'
 import { useDashboardStore } from '@/store'
 import { useThemeStore } from '@/store/theme'
 import { useAutoRefresh } from '@/composables/useAutoRefresh'
@@ -670,6 +683,21 @@ const PRESENT_INTERVAL = 15000 // 15 seconds per page
 // Period selector
 const period = ref<'day' | 'week' | 'month' | 'year'>('month')
 const periodLabels: Record<string, string> = { day: '日', week: '周', month: '月', year: '年' }
+
+// Layout template
+type LayoutTemplate = 'classic' | 'focus' | 'dual' | 'grid'
+const layoutTemplate = ref<LayoutTemplate>('classic')
+const layoutTemplates = [
+  { key: 'classic' as LayoutTemplate, label: '经典三栏' },
+  { key: 'focus' as LayoutTemplate, label: '影院模式' },
+  { key: 'dual' as LayoutTemplate, label: '上下分屏' },
+  { key: 'grid' as LayoutTemplate, label: '监控大屏' },
+]
+
+function switchLayout(key: LayoutTemplate) {
+  layoutTemplate.value = key
+  playClickSound()
+}
 
 // Risk carousel
 const riskCarouselIdx = ref(0)
@@ -1238,15 +1266,6 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-.page-slide {
-  flex: 0 0 100%;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .slide-content { flex: 1; min-height: 0; }
 
 .dash-main.page-transitioning .slide-content {
@@ -1267,6 +1286,206 @@ onUnmounted(() => {
   padding: 10px 14px;
   gap: 8px;
 }
+
+// ===== Layout Template Switcher =====
+.layout-switcher {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+  background: var(--card-bg, #161B22);
+  border: 1px solid var(--border, rgba(255,255,255,0.06));
+  border-radius: 8px;
+  padding: 3px;
+  width: fit-content;
+  align-self: center;
+}
+
+.layout-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-caption, #64748b);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+
+  &:hover { color: var(--text-body, #cbd5e1); background: rgba(255,255,255,0.04); }
+
+  &.active {
+    background: rgba(96, 165, 250, 0.12);
+    color: var(--primary, #60a5fa);
+    box-shadow: 0 0 8px rgba(96, 165, 250, 0.1);
+  }
+}
+
+// ===== Layout: Classic (default 3-column) =====
+.layout-classic .exec-body {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  min-height: 0;
+}
+.layout-classic .exec-left { width: 22%; flex-shrink: 0; display: flex; flex-direction: column; min-height: 0; }
+.layout-classic .exec-center { flex: 1; min-width: 0; }
+.layout-classic .exec-right { width: 26%; flex-shrink: 0; display: flex; flex-direction: column; min-height: 0; }
+
+// ===== Layout: Focus (cinematic — center dominates, sides are narrow icon bars) =====
+.layout-focus {
+  background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.3) 100%);
+}
+.layout-focus .exec-body {
+  flex: 1;
+  display: flex;
+  gap: 4px;
+  min-height: 0;
+}
+.layout-focus .exec-left {
+  width: 14%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  opacity: 0.85;
+  border-right: 1px solid rgba(96, 165, 250, 0.08);
+}
+.layout-focus .exec-center {
+  flex: 1;
+  min-width: 0;
+  border-radius: 12px;
+  box-shadow: 0 0 40px rgba(96, 165, 250, 0.04), inset 0 0 30px rgba(96, 165, 250, 0.02);
+  border: 1px solid rgba(96, 165, 250, 0.1);
+}
+.layout-focus .exec-right {
+  width: 14%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  opacity: 0.85;
+  border-left: 1px solid rgba(96, 165, 250, 0.08);
+}
+.layout-focus .kpi-banner { gap: 4px; }
+.layout-focus .kpi-card { padding: 6px 10px; border-radius: 6px; }
+.layout-focus .kpi-card.hero { flex: 1.1; }
+.layout-focus .panel-card { border-radius: 8px; }
+.layout-focus .panel-toolbar { padding: 6px 8px; }
+.layout-focus .stack-tabs { gap: 0; }
+.layout-focus .stack-tab { padding: 4px 6px; font-size: 10px; }
+.layout-focus .left-stack-container,
+.layout-focus .right-stack-container { gap: 4px; }
+
+// ===== Layout: Dual (top-bottom split — left+center on top, right on bottom) =====
+.layout-dual .exec-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1.3fr 1fr;
+  gap: 8px;
+  min-height: 0;
+}
+.layout-dual .exec-left {
+  width: auto;
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.layout-dual .exec-center {
+  width: auto;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.layout-dual .exec-right {
+  width: auto;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+.layout-dual .kpi-banner {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.layout-dual .kpi-card { flex: 0 0 calc(25% - 6px); padding: 8px 10px; }
+.layout-dual .kpi-card.hero { flex: 0 0 calc(25% - 6px); }
+.layout-dual .period-selector { flex: 0 0 calc(25% - 6px); }
+.layout-dual .right-stack-container { flex-direction: row; gap: 8px; }
+.layout-dual .right-stack-container .stack-cards { flex: 1; display: flex; gap: 8px; overflow: hidden; }
+.layout-dual .right-stack-container .stack-card {
+  position: relative;
+  flex: 1;
+  opacity: 1 !important;
+  transform: none !important;
+  min-width: 0;
+}
+
+// ===== Layout: Grid (bento 3-column equal — dense monitoring wall) =====
+.layout-grid {
+  background: linear-gradient(180deg, rgba(15,23,42,0.5) 0%, transparent 100%);
+}
+.layout-grid .exec-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr;
+  gap: 6px;
+  min-height: 0;
+}
+.layout-grid .exec-left {
+  width: auto;
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.layout-grid .exec-center {
+  width: auto;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.layout-grid .exec-right {
+  width: auto;
+  grid-column: 3;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.layout-grid .kpi-banner {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.layout-grid .kpi-card {
+  flex: 0 0 calc(14.28% - 4px);
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+}
+.layout-grid .kpi-card.hero { flex: 0 0 calc(14.28% - 4px); }
+.layout-grid .kpi-label { font-size: 8px; margin-bottom: 1px; }
+.layout-grid .kpi-trend { font-size: 9px; }
+.layout-grid .period-selector { flex: 0 0 calc(14.28% - 4px); }
+.layout-grid .panel-card { border-radius: 6px; }
+.layout-grid .panel-toolbar { padding: 5px 8px; }
+.layout-grid .panel-title { font-size: 11px; }
+.layout-grid .stack-tab { padding: 3px 5px; font-size: 9px; }
+.layout-grid .target-banner { padding: 4px 8px; }
+.layout-grid .risk-carousel { padding: 4px 8px; }
 
 // ===== KPI Banner =====
 .kpi-banner {
@@ -1333,33 +1552,13 @@ onUnmounted(() => {
 .kpi-bar { height: 3px; background: var(--bar-track, rgba(255, 255, 255, 0.05)); border-radius: 2px; margin-top: 6px; overflow: hidden; }
 .kpi-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
 
-// ===== Main Body (3-column) =====
+// ===== Main Body (3-column) — default styles overridden by layout-classic =====
 .exec-body {
-  flex: 1;
-  display: flex;
-  gap: 10px;
-  min-height: 0;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.exec-left {
-  width: 22%;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.exec-center {
-  flex: 1;
-  min-width: 0;
-}
-
-.exec-right {
-  width: 26%;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+.exec-left, .exec-center, .exec-right {
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 // ===== Panel Card (reusable) — with enhanced 3D depth =====
