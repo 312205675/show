@@ -38,32 +38,36 @@
       </div>
 
       <div class="two-col">
-        <!-- 转化率排名 -->
+        <!-- 渠道综合能力雷达图 -->
         <div class="card">
-          <div class="card-title">转化率排名</div>
-          <div class="rank-list">
-            <div v-for="(ch, i) in sortedByConversion" :key="ch.name" class="rank-item">
-              <span class="rank-no" :class="{ top: i < 3 }">{{ i + 1 }}</span>
-              <span class="rank-name">{{ ch.name }}</span>
-              <div class="rank-bar-bg">
-                <div class="rank-bar-fill" :style="{ width: ch.conversionRate + '%', background: ch.color }" />
-              </div>
-              <span class="rank-val">{{ ch.conversionRate }}%</span>
-            </div>
+          <div class="card-title">渠道综合能力</div>
+          <div class="radar-chart-area">
+            <ChartWrapper :option="radarOption" height="100%" />
           </div>
         </div>
 
-        <!-- ROI排名 -->
+        <!-- 转化率 & ROI 双轴排名 -->
         <div class="card">
-          <div class="card-title">ROI排名</div>
-          <div class="rank-list">
-            <div v-for="(ch, i) in sortedByROI" :key="ch.name" class="rank-item">
-              <span class="rank-no" :class="{ top: i < 3 }">{{ i + 1 }}</span>
-              <span class="rank-name">{{ ch.name }}</span>
-              <div class="rank-bar-bg">
-                <div class="rank-bar-fill" :style="{ width: (ch.roi / maxROI * 100) + '%', background: ch.color }" />
+          <div class="card-title">转化率 × ROI 对比</div>
+          <div class="dual-rank-list">
+            <div v-for="(ch, i) in channels" :key="ch.name" class="dual-rank-item">
+              <span class="dr-name">{{ ch.name }}</span>
+              <div class="dr-bars">
+                <div class="dr-bar-row">
+                  <span class="dr-bar-label">转化</span>
+                  <div class="dr-bar-bg">
+                    <div class="dr-bar-fill conv" :style="{ width: ch.conversionRate + '%' }" />
+                  </div>
+                  <span class="dr-bar-val">{{ ch.conversionRate }}%</span>
+                </div>
+                <div class="dr-bar-row">
+                  <span class="dr-bar-label">ROI</span>
+                  <div class="dr-bar-bg">
+                    <div class="dr-bar-fill roi" :style="{ width: (ch.roi / maxROI * 100) + '%' }" />
+                  </div>
+                  <span class="dr-bar-val">{{ ch.roi }}</span>
+                </div>
               </div>
-              <span class="rank-val">{{ ch.roi }}</span>
             </div>
           </div>
         </div>
@@ -128,6 +132,7 @@ import { computed, ref } from 'vue'
 import { generateChannels, type ChannelItem } from '@/utils/pageMockData'
 import Bar3DChart from '@/components/charts/Bar3DChart.vue'
 import Scatter3DChart from '@/components/charts/Scatter3DChart.vue'
+import ChartWrapper from '@/components/common/ChartWrapper.vue'
 
 const props = withDefaults(defineProps<{
   viewMode?: '2d' | '3d'
@@ -162,6 +167,55 @@ const channelScatterData = computed(() =>
 const costBarData = computed(() =>
   channels.value.map(c => ({ name: c.name, value: c.costPerCustomer, color: c.color }))
 )
+
+// Radar chart option for channel capability
+const radarOption = computed(() => ({
+  backgroundColor: 'transparent',
+  tooltip: {
+    trigger: 'item',
+    backgroundColor: 'rgba(15, 18, 23, 0.95)',
+    borderColor: 'rgba(96, 165, 250, 0.15)',
+    textStyle: { color: '#e2e8f0', fontSize: 11 },
+  },
+  legend: {
+    data: channels.value.slice(0, 4).map(c => c.name),
+    bottom: 4,
+    textStyle: { color: '#64748b', fontSize: 9 },
+    itemWidth: 10,
+    itemHeight: 6,
+  },
+  radar: {
+    indicator: [
+      { name: '销售额', max: 100 },
+      { name: '转化率', max: 100 },
+      { name: 'ROI', max: 100 },
+      { name: '成交数', max: 100 },
+      { name: '成本控制', max: 100 },
+    ],
+    shape: 'polygon',
+    splitNumber: 4,
+    axisName: { color: '#64748b', fontSize: 9 },
+    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } },
+    splitArea: { areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(255,255,255,0.01)'] } },
+    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.08)' } },
+  },
+  series: [{
+    type: 'radar',
+    data: channels.value.slice(0, 4).map(c => ({
+      name: c.name,
+      value: [
+        (c.salesAmount / maxSales.value * 100).toFixed(0),
+        c.conversionRate * 4,
+        (c.roi / maxROI.value * 100).toFixed(0),
+        (c.dealCount / Math.max(...channels.value.map(x => x.dealCount)) * 100).toFixed(0),
+        Math.max(0, 100 - c.costPerCustomer / 10),
+      ],
+      lineStyle: { color: c.color, width: 1.5 },
+      areaStyle: { color: c.color, opacity: 0.1 },
+      itemStyle: { color: c.color },
+    })),
+  }],
+}))
 </script>
 
 <style scoped lang="scss">
@@ -225,6 +279,18 @@ const costBarData = computed(() =>
 
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .two-col-3d { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.radar-chart-area { height: 240px; }
+
+.dual-rank-list { display: flex; flex-direction: column; gap: 8px; }
+.dual-rank-item { padding: 6px 8px; border-radius: 6px; transition: all 0.2s; &:hover { background: var(--surface, rgba(255,255,255,0.03)); } }
+.dr-name { font-size: 11px; font-weight: 600; color: var(--text-title, #e2e8f0); margin-bottom: 4px; }
+.dr-bars { display: flex; flex-direction: column; gap: 3px; }
+.dr-bar-row { display: flex; align-items: center; gap: 6px; }
+.dr-bar-label { font-size: 9px; color: var(--text-caption, #64748b); width: 26px; flex-shrink: 0; }
+.dr-bar-bg { flex: 1; height: 6px; background: var(--bar-track, rgba(255,255,255,0.05)); border-radius: 3px; overflow: hidden; }
+.dr-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; &.conv { background: var(--primary, #60a5fa); } &.roi { background: var(--success, #22C55E); } }
+.dr-bar-val { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-body, #cbd5e1); width: 36px; text-align: right; flex-shrink: 0; font-weight: 600; }
 
 .channel-bars { display: flex; flex-direction: column; gap: 8px; }
 .ch-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; transition: all 0.2s; &:hover { background: var(--surface, rgba(255,255,255,0.03)); border-radius: 4px; } }

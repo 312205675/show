@@ -1,19 +1,33 @@
 <template>
   <div
     class="ai-robot"
-    :style="{ left: pos.x + 'px', top: pos.y + 'px' }"
+    :class="{ minimized: isMinimized, 'minimizing': isMinimizing, 'waking': isWaking }"
+    :style="robotStyle"
     @mousedown="startDrag"
     @touchstart.prevent="startDragTouch"
+    @mouseenter="onInteract"
+    @click="onInteract"
   >
+    <!-- Minimized Indicator (edge dot) -->
+    <Transition name="dot-fade">
+      <div v-if="isMinimized" class="minimized-indicator" @click.stop="wakeUp">
+        <div class="indicator-dot">
+          <div class="dot-ring" />
+          <div class="dot-core" />
+        </div>
+        <div class="indicator-label">助手</div>
+      </div>
+    </Transition>
+
     <!-- Robot Body -->
-    <div class="robot-body" :class="{ active: isSpeaking }" @click="toggleChat">
+    <div v-show="!isMinimized" class="robot-body" :class="{ active: isSpeaking, sleeping: isSleeping }" @click="toggleChat">
       <div class="robot-head">
         <div class="robot-antenna">
           <div class="antenna-ball" />
         </div>
         <div class="robot-eyes">
-          <div class="eye left" :class="{ blink: isBlinking }" />
-          <div class="eye right" :class="{ blink: isBlinking }" />
+          <div class="eye left" :class="{ blink: isBlinking, sleepy: isSleeping }" />
+          <div class="eye right" :class="{ blink: isBlinking, sleepy: isSleeping }" />
         </div>
         <div class="robot-mouth" :class="{ speaking: isSpeaking }" />
       </div>
@@ -23,6 +37,10 @@
           <div class="screen-line l2" />
           <div class="screen-line l3" />
         </div>
+        <!-- Minimize button -->
+        <button class="minimize-btn" @click.stop="minimizeRobot" title="收起助手">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 15l-6-6-6 6"/></svg>
+        </button>
       </div>
     </div>
 
@@ -63,30 +81,96 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useSound } from '@/composables/useSound'
 import { fluctuate } from '@/utils/mockData'
 
 const { playRobotTipSound, playClickSound } = useSound()
 
-// Position & dragging
+// ===== Idle & Minimize =====
+const IDLE_TIMEOUT = 120_000 // 2 minutes
+const isMinimized = ref(false)
+const isMinimizing = ref(false)
+const isWaking = ref(false)
+const isSleeping = ref(false)
+let idleTimer: ReturnType<typeof setTimeout> | null = null
+
+function resetIdle() {
+  if (idleTimer) clearTimeout(idleTimer)
+  if (isMinimized.value) return // don't start idle timer while minimized
+  idleTimer = setTimeout(() => {
+    minimizeRobot()
+  }, IDLE_TIMEOUT)
+}
+
+function onInteract() {
+  resetIdle()
+}
+
+function minimizeRobot() {
+  if (isMinimized.value) return
+  chatOpen.value = false
+  showBubble.value = false
+  isMinimizing.value = true
+  isSleeping.value = true
+  setTimeout(() => {
+    isMinimized.value = true
+    isMinimizing.value = false
+  }, 400)
+  if (idleTimer) clearTimeout(idleTimer)
+}
+
+function wakeUp() {
+  isMinimized.value = false
+  isWaking.value = true
+  isSleeping.value = false
+  playClickSound()
+  setTimeout(() => {
+    isWaking.value = false
+  }, 500)
+  resetIdle()
+}
+
+// ===== Position & Dragging =====
 const pos = ref({ x: window.innerWidth - 100, y: window.innerHeight - 160 })
 const dragging = ref(false)
 const dragOffset = ref({ x: 0, y: 0 })
 
+const robotStyle = computed(() => {
+  if (isMinimized.value) {
+    // Stick to the right edge, vertically centered
+    return {
+      right: '0px',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      left: 'auto',
+    }
+  }
+  return {
+    left: pos.value.x + 'px',
+    top: pos.value.y + 'px',
+    right: 'auto',
+    transform: 'none',
+  }
+})
+
 function startDrag(e: MouseEvent) {
+  if (isMinimized.value) return
   dragging.value = true
   dragOffset.value = { x: e.clientX - pos.value.x, y: e.clientY - pos.value.y }
   window.addEventListener('mousemove', onDrag)
   window.addEventListener('mouseup', stopDrag)
+  onInteract()
 }
 
 function startDragTouch(e: TouchEvent) {
+  if (isMinimized.value) return
   dragging.value = true
   const t = e.touches[0]
   dragOffset.value = { x: t.clientX - pos.value.x, y: t.clientY - pos.value.y }
   window.addEventListener('touchmove', onDragTouch, { passive: false })
   window.addEventListener('touchend', stopDrag)
+  onInteract()
 }
 
 function onDrag(e: MouseEvent) {
@@ -115,18 +199,18 @@ function stopDrag() {
   window.removeEventListener('touchend', stopDrag)
 }
 
-// Blinking animation
+// ===== Blinking =====
 const isBlinking = ref(false)
 let blinkTimer: ReturnType<typeof setInterval> | null = null
 
-// Speech
+// ===== Speech =====
 const isSpeaking = ref(false)
 const showBubble = ref(false)
 const bubbleText = ref('')
 const bubbleType = ref<'info' | 'tip' | 'alert'>('info')
 let bubbleTimer: ReturnType<typeof setTimeout> | null = null
 
-// Chat
+// ===== Chat =====
 const chatOpen = ref(false)
 const userInput = ref('')
 const chatMessagesRef = ref<HTMLElement | null>(null)
@@ -152,6 +236,14 @@ const tips = [
 ]
 
 function showTip() {
+  // Wake up if minimized to show the tip
+  if (isMinimized.value) {
+    isMinimized.value = false
+    isSleeping.value = false
+    isWaking.value = true
+    setTimeout(() => { isWaking.value = false }, 500)
+  }
+
   if (chatOpen.value) return
   const tip = tips[Math.floor(Math.random() * tips.length)]
   bubbleText.value = tip
@@ -164,6 +256,8 @@ function showTip() {
   bubbleTimer = setTimeout(() => {
     showBubble.value = false
     isSpeaking.value = false
+    // After tip finishes, restart idle timer (will minimize if still idle)
+    resetIdle()
   }, 5000)
 }
 
@@ -172,6 +266,7 @@ function toggleChat() {
   chatOpen.value = !chatOpen.value
   showBubble.value = false
   playClickSound()
+  onInteract()
 }
 
 function sendMessage() {
@@ -180,7 +275,6 @@ function sendMessage() {
   messages.value.push({ from: 'user', text })
   userInput.value = ''
 
-  // Simple auto-reply
   setTimeout(() => {
     const reply = generateReply(text)
     messages.value.push({ from: 'bot', text: reply })
@@ -193,6 +287,7 @@ function sendMessage() {
       }
     })
   }, 600)
+  onInteract()
 }
 
 function generateReply(input: string): string {
@@ -222,6 +317,7 @@ let tipInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
   blinkTimer = setInterval(() => {
+    if (isMinimized.value) return
     isBlinking.value = true
     setTimeout(() => { isBlinking.value = false }, 200)
   }, 3000)
@@ -233,12 +329,16 @@ onMounted(() => {
       if (Math.random() > 0.4) showTip()
     }, 35000)
   }, 15000)
+
+  // Start idle timer
+  resetIdle()
 })
 
 onUnmounted(() => {
   if (blinkTimer) clearInterval(blinkTimer)
   if (tipInterval) clearInterval(tipInterval)
   if (bubbleTimer) clearTimeout(bubbleTimer)
+  if (idleTimer) clearTimeout(idleTimer)
 })
 </script>
 
@@ -248,18 +348,121 @@ onUnmounted(() => {
   z-index: 250;
   cursor: grab;
   user-select: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:active { cursor: grabbing; }
+
+  &.minimized {
+    cursor: pointer;
+    left: auto !important;
+  }
+
+  &.minimizing .robot-body {
+    transform: scale(0.3) translateX(40px);
+    opacity: 0;
+  }
+
+  &.waking .robot-body {
+    animation: wakeBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
+
+@keyframes wakeBounce {
+  0% { transform: scale(0.5) translateX(30px); opacity: 0.5; }
+  60% { transform: scale(1.1) translateX(-5px); opacity: 1; }
+  100% { transform: scale(1) translateX(0); opacity: 1; }
+}
+
+// ===== Minimized Indicator =====
+.minimized-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    .indicator-dot { transform: scale(1.2); }
+    .dot-ring { border-color: rgba(99, 102, 241, 0.6); }
+    .dot-core { box-shadow: 0 0 12px rgba(99, 102, 241, 0.8); }
+    .indicator-label { color: var(--text-body, #cbd5e1); }
+  }
+}
+
+.indicator-dot {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dot-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  animation: ringPulse 2.5s ease-in-out infinite;
+}
+
+.dot-core {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #3b82f6);
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+  animation: coreGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes ringPulse {
+  0%, 100% { transform: scale(1); border-color: rgba(99, 102, 241, 0.2); }
+  50% { transform: scale(1.15); border-color: rgba(99, 102, 241, 0.5); }
+}
+
+@keyframes coreGlow {
+  0%, 100% { box-shadow: 0 0 6px rgba(99, 102, 241, 0.4); }
+  50% { box-shadow: 0 0 16px rgba(99, 102, 241, 0.8); }
+}
+
+.indicator-label {
+  font-size: 9px;
+  color: var(--text-caption, #64748b);
+  letter-spacing: 1px;
+  writing-mode: horizontal-tb;
+  transition: color 0.2s;
+}
+
+.dot-fade-enter-active { animation: dotIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.dot-fade-leave-active { animation: dotOut 0.2s ease-in; }
+
+@keyframes dotIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes dotOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.5); }
 }
 
 .robot-body {
   width: 64px;
   height: 72px;
   position: relative;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
 
   &:hover { transform: scale(1.1); }
   &.active { animation: robotBounce 0.5s ease; }
+  &.sleeping {
+    opacity: 0.5;
+    transform: scale(0.9);
+    .antenna-ball { animation: none; box-shadow: 0 0 4px rgba(96, 165, 250, 0.2); }
+    .screen-line { animation: none; opacity: 0.2; }
+  }
 }
 
 @keyframes robotBounce {
@@ -325,6 +528,13 @@ onUnmounted(() => {
     border-radius: 2px;
     margin-top: 3px;
   }
+
+  &.sleepy {
+    height: 3px;
+    border-radius: 2px;
+    margin-top: 2.5px;
+    opacity: 0.5;
+  }
 }
 
 .robot-mouth {
@@ -369,6 +579,28 @@ onUnmounted(() => {
   background: rgba(0, 0, 0, 0.3);
   overflow: hidden;
   padding: 3px;
+}
+
+.minimize-btn {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(30, 34, 42, 0.9);
+  color: var(--text-caption, #64748b);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s;
+  z-index: 2;
+
+  .robot-body:hover & { opacity: 1; }
+  &:hover { background: rgba(99, 102, 241, 0.3); color: var(--text-title, #e2e8f0); }
 }
 
 .screen-line {
