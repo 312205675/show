@@ -1,6 +1,6 @@
 import { ref, watch } from 'vue'
 
-export type StaffTheme = 'dark' | 'light' | 'blue'
+export type StaffTheme = 'dark' | 'light' | 'blue' | 'lightBlue'
 
 export interface ThemeOption {
   key: StaffTheme
@@ -27,6 +27,12 @@ export const themeOptions: ThemeOption[] = [
     label: '科技蓝',
     desc: '深邃蓝调科技感',
     preview: { bg: '#0a1628', accent: '#4da6ff', text: '#e2e8f0' },
+  },
+  {
+    key: 'lightBlue',
+    label: '浅蓝',
+    desc: '清新天蓝优雅风',
+    preview: { bg: '#eaf1fb', accent: '#4a8bc2', text: '#1c3a5c' },
   },
 ]
 
@@ -166,6 +172,51 @@ const cssVars: Record<StaffTheme, Record<string, string>> = {
     '--staff-scrollbar-track': 'transparent',
     '--staff-shadow': '0 8px 24px rgba(0,0,0,0.4)',
   },
+  lightBlue: {
+    '--staff-bg': '#eaf1fb',
+    '--staff-sidebar-bg': '#ffffff',
+    '--staff-card-bg': '#ffffff',
+    '--staff-input-bg': '#e4ecf7',
+    '--staff-header-bg': 'rgba(234,241,251,0.88)',
+    '--staff-border': 'rgba(74,139,194,0.1)',
+    '--staff-border-input': 'rgba(74,139,194,0.14)',
+    '--staff-border-focus': 'rgba(74,139,194,0.45)',
+    '--staff-text': '#1c3a5c',
+    '--staff-text-2': '#4a6d8c',
+    '--staff-text-3': '#7a9bb8',
+    '--staff-text-4': '#b0c7db',
+    '--staff-hover': 'rgba(74,139,194,0.04)',
+    '--staff-hover-2': 'rgba(74,139,194,0.07)',
+    '--staff-hover-3': 'rgba(74,139,194,0.1)',
+    '--staff-hover-4': 'rgba(74,139,194,0.05)',
+    '--staff-primary': '#4a8bc2',
+    '--staff-primary-rgb': '74,139,194',
+    '--staff-primary-bg': 'rgba(74,139,194,0.1)',
+    '--staff-primary-border': 'rgba(74,139,194,0.22)',
+    '--staff-primary-hover': 'rgba(74,139,194,0.3)',
+    '--staff-primary-grad': 'linear-gradient(135deg, #4a8bc2, #3570a8)',
+    '--staff-success': '#1a9e5c',
+    '--staff-success-rgb': '26,158,92',
+    '--staff-success-bg': 'rgba(26,158,92,0.08)',
+    '--staff-warning': '#c47f17',
+    '--staff-warning-rgb': '196,127,23',
+    '--staff-warning-bg': 'rgba(196,127,23,0.08)',
+    '--staff-danger': '#c43a3a',
+    '--staff-danger-rgb': '196,58,58',
+    '--staff-danger-bg': 'rgba(196,58,58,0.08)',
+    '--staff-purple': '#6c4db5',
+    '--staff-purple-rgb': '108,77,181',
+    '--staff-purple-bg': 'rgba(108,77,181,0.08)',
+    '--staff-cyan': '#1a8fa8',
+    '--staff-cyan-rgb': '26,143,168',
+    '--staff-cyan-bg': 'rgba(26,143,168,0.08)',
+    '--staff-brand-1': '#4a8bc2',
+    '--staff-brand-2': '#6c4db5',
+    '--staff-overlay': 'rgba(234,241,251,0.6)',
+    '--staff-scrollbar': 'rgba(74,139,194,0.18)',
+    '--staff-scrollbar-track': 'transparent',
+    '--staff-shadow': '0 4px 16px rgba(28,58,92,0.1)',
+  },
 }
 
 const STORAGE_KEY = 'smartestate-staff-theme'
@@ -181,7 +232,7 @@ function applyTheme(theme: StaffTheme) {
     root.style.setProperty(key, value)
   }
   // Add theme class for any CSS that needs it
-  root.classList.remove('staff-theme-dark', 'staff-theme-light', 'staff-theme-blue')
+  root.classList.remove('staff-theme-dark', 'staff-theme-light', 'staff-theme-blue', 'staff-theme-lightBlue')
   root.classList.add(`staff-theme-${theme}`)
 }
 
@@ -199,7 +250,7 @@ export function useStaffTheme() {
   }
 
   function toggleTheme() {
-    const keys: StaffTheme[] = ['dark', 'light', 'blue']
+    const keys: StaffTheme[] = ['dark', 'light', 'blue', 'lightBlue']
     const idx = keys.indexOf(currentTheme.value)
     currentTheme.value = keys[(idx + 1) % keys.length]
   }
