@@ -617,6 +617,8 @@ const CustomerPage = markRaw(defineAsyncComponent(() => import('@/components/pag
 const FunnelPage = markRaw(defineAsyncComponent(() => import('@/components/pages/FunnelPage.vue')))
 const InventoryPage = markRaw(defineAsyncComponent(() => import('@/components/pages/InventoryPage.vue')))
 const RegionPage = markRaw(defineAsyncComponent(() => import('@/components/pages/RegionPage.vue')))
+const BigDataPage = markRaw(defineAsyncComponent(() => import('@/components/pages/BigDataPage.vue')))
+const AIEnginePage = markRaw(defineAsyncComponent(() => import('@/components/pages/AIEnginePage.vue')))
 
 interface PageDef {
   key: string
@@ -633,6 +635,8 @@ const pages = ref<PageDef[]>([
   { key: 'project', label: '项目深度', icon: '◈', component: ProjectDeepPage },
   { key: 'customer', label: '客户画像', icon: '◎', component: CustomerPage },
   { key: 'funnel', label: '销售漏斗', icon: '▽', component: FunnelPage },
+  { key: 'bigdata', label: '大数据平台', icon: '⬢', component: BigDataPage },
+  { key: 'aiengine', label: 'AI引擎', icon: '⬟', component: AIEnginePage },
 ])
 
 const drillPages = computed(() => pages.value.slice(1))
