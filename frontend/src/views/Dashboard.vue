@@ -593,7 +593,7 @@ import CombinedTrendChart from '@/components/charts/CombinedTrendChart.vue'
 import PieDistribution from '@/components/charts/PieDistribution.vue'
 import BarComparison from '@/components/charts/BarComparison.vue'
 import GaugeChart from '@/components/charts/GaugeChart.vue'
-import Globe3D from '@/components/charts/Globe3D.vue'
+const Globe3D = defineAsyncComponent(() => import('@/components/charts/Globe3D.vue'))
 import ChinaMap from '@/components/charts/ChinaMap.vue'
 import RiskRadar from '@/components/charts/RiskRadar.vue'
 import DigitalFlipper from '@/components/common/DigitalFlipper.vue'

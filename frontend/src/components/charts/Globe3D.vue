@@ -26,6 +26,12 @@ let mouseY = 0
 function init() {
   if (!containerRef.value) return
   const container = containerRef.value
+
+  // Check WebGL support
+  const testCanvas = document.createElement('canvas')
+  const gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl')
+  if (!gl) return
+
   const width = container.clientWidth
   const height = container.clientHeight
 

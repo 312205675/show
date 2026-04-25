@@ -26,6 +26,11 @@ function init() {
   const container = containerRef.value
   if (!container) return
 
+  // Check WebGL support
+  const testCanvas = document.createElement('canvas')
+  const gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl')
+  if (!gl) return
+
   const w = container.offsetWidth
   const h = container.offsetHeight
 

@@ -25,6 +25,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           echarts: ['echarts/core', 'echarts/charts', 'echarts/components', 'echarts/renderers'],
+          three: ['three'],
         },
       },
     },

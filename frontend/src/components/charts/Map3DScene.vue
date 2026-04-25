@@ -55,6 +55,14 @@ function init() {
   const container = containerRef.value
   if (!container) return
 
+  // Check WebGL support
+  const testCanvas = document.createElement('canvas')
+  const gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl')
+  if (!gl) {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;font-size:14px;">3D 地图需要 WebGL 支持</div>'
+    return
+  }
+
   const w = container.offsetWidth
   const h = container.offsetHeight
 
