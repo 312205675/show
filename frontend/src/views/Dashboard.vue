@@ -808,8 +808,8 @@ const areaMapData = computed(() => {
     { name: '长安区', level: 'warning' as const },
     { name: '桥西区', level: 'warning' as const },
     { name: '新华区', level: 'healthy' as const },
-    { name: '正定新区', level: 'danger' as const },
-    { name: '栾城区', level: 'danger' as const },
+    { name: '鹿泉区', level: 'danger' as const },
+    { name: '高新区', level: 'danger' as const },
   ]
   return areas.map(a => {
     const projects = store.projectMatrix.filter(p => p.city === a.name)

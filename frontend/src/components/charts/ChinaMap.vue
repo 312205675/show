@@ -42,22 +42,22 @@ const mapRef = ref<HTMLDivElement | null>(null)
 let chart: echarts.ECharts | null = null
 
 const defaultPoints: MapPoint[] = [
-  { name: '城发投·翡翠城', value: [114.53, 38.02, 86], itemStyle: { color: '#22C55E' }, extra: { city: '裕华区', price: '16500', deals: 42, type: '高层/洋房' } },
-  { name: '城发投·锦绣学府', value: [114.56, 38.05, 62], itemStyle: { color: '#F59E0B' }, extra: { city: '长安区', price: '14200', deals: 35, type: '高层' } },
-  { name: '城发投·天颂', value: [114.46, 38.03, 55], itemStyle: { color: '#F59E0B' }, extra: { city: '桥西区', price: '18800', deals: 18, type: '洋房/别墅' } },
-  { name: '城发投·熙湖', value: [114.44, 38.07, 71], itemStyle: { color: '#22C55E' }, extra: { city: '新华区', price: '13500', deals: 28, type: '高层/洋房' } },
-  { name: '城发投·荣盛华府', value: [114.54, 38.01, 78], itemStyle: { color: '#22C55E' }, extra: { city: '裕华区', price: '21000', deals: 22, type: '别墅/大平层' } },
-  { name: '城发投·中央云锦', value: [114.58, 38.06, 58], itemStyle: { color: '#F59E0B' }, extra: { city: '长安区', price: '19500', deals: 15, type: '高层/洋房' } },
-  { name: '城发投·尚宾城', value: [114.44, 38.02, 48], itemStyle: { color: '#EF4444' }, extra: { city: '桥西区', price: '15800', deals: 12, type: '高层' } },
-  { name: '城发投·御河上院', value: [114.57, 38.13, 35], itemStyle: { color: '#EF4444' }, extra: { city: '正定新区', price: '12000', deals: 8, type: '高层/洋房' } },
-  { name: '城发投·和府', value: [114.59, 38.04, 65], itemStyle: { color: '#F59E0B' }, extra: { city: '长安区', price: '17200', deals: 30, type: '洋房' } },
-  { name: '城发投·云和赋', value: [114.52, 38.00, 72], itemStyle: { color: '#22C55E' }, extra: { city: '裕华区', price: '20500', deals: 25, type: '大平层' } },
-  { name: '城发投·裕华城', value: [114.51, 37.98, 68], itemStyle: { color: '#22C55E' }, extra: { city: '裕华区', price: '14800', deals: 38, type: '高层' } },
-  { name: '城发投·海棠苑', value: [114.45, 38.08, 52], itemStyle: { color: '#EF4444' }, extra: { city: '新华区', price: '12800', deals: 10, type: '高层' } },
-  { name: '城发投·瑞城', value: [114.57, 38.07, 60], itemStyle: { color: '#F59E0B' }, extra: { city: '长安区', price: '15600', deals: 26, type: '高层/洋房' } },
-  { name: '城发投·长安国风', value: [114.55, 38.06, 56], itemStyle: { color: '#F59E0B' }, extra: { city: '长安区', price: '18500', deals: 14, type: '洋房' } },
-  { name: '城发投·栾城壹号院', value: [114.65, 37.90, 28], itemStyle: { color: '#EF4444' }, extra: { city: '栾城区', price: '9800', deals: 5, type: '高层' } },
-  { name: '城发投·正定新区', value: [114.58, 38.14, 32], itemStyle: { color: '#EF4444' }, extra: { city: '正定新区', price: '11500', deals: 6, type: '高层/洋房' } },
+  { name: '城发投·云山樾', value: [114.53, 38.05, 86], itemStyle: { color: '#22C55E' }, extra: { city: '长安区', price: '18800', deals: 42, type: '高端住宅' } },
+  { name: '城发投·云澜悦府', value: [114.54, 38.05, 82], itemStyle: { color: '#22C55E' }, extra: { city: '长安区', price: '18500', deals: 38, type: '高端住宅' } },
+  { name: '城发投·云和赋', value: [114.46, 38.02, 72], itemStyle: { color: '#22C55E' }, extra: { city: '桥西区', price: '21000', deals: 25, type: '大平层' } },
+  { name: '城发投·瑞晟府', value: [114.44, 38.03, 55], itemStyle: { color: '#F59E0B' }, extra: { city: '桥西区', price: '17800', deals: 18, type: '洋房/高层' } },
+  { name: '城发投·云华', value: [114.52, 38.00, 48], itemStyle: { color: '#EF4444' }, extra: { city: '裕华区', price: '12500', deals: 12, type: '高层' } },
+  { name: '城发投·云尚', value: [114.42, 38.08, 45], itemStyle: { color: '#EF4444' }, extra: { city: '新华区', price: '13500', deals: 10, type: '高层/洋房' } },
+  { name: '城发投·瑞凝府', value: [114.57, 38.06, 65], itemStyle: { color: '#F59E0B' }, extra: { city: '长安区', price: '16200', deals: 30, type: '洋房' } },
+  { name: '城发投·云徽颂', value: [114.53, 38.01, 78], itemStyle: { color: '#22C55E' }, extra: { city: '裕华区', price: '19200', deals: 22, type: '高端住宅' } },
+  { name: '城发投·雲境府', value: [114.44, 38.01, 60], itemStyle: { color: '#F59E0B' }, extra: { city: '桥西区', price: '17500', deals: 20, type: '洋房/高层' } },
+  { name: '城发投·麓湖四季', value: [114.28, 38.08, 35], itemStyle: { color: '#EF4444' }, extra: { city: '鹿泉区', price: '14800', deals: 8, type: '洋房/别墅' } },
+  { name: '东方禧', value: [114.56, 38.06, 56], itemStyle: { color: '#F59E0B' }, extra: { city: '长安区', price: '16800', deals: 14, type: '高层' } },
+  { name: '城发投·龙泉湖55号地', value: [114.27, 38.10, 28], itemStyle: { color: '#EF4444' }, extra: { city: '鹿泉区', price: '13800', deals: 5, type: '高层/洋房' } },
+  { name: '高铁商务14号地', value: [114.47, 38.01, 58], itemStyle: { color: '#22C55E' }, extra: { city: '桥西区', price: '22000', deals: 16, type: '办公/商务' } },
+  { name: '自强路金融区', value: [114.48, 38.04, 52], itemStyle: { color: '#22C55E' }, extra: { city: '桥西区', price: '25000', deals: 12, type: '办公/商业' } },
+  { name: '生物医药园一期', value: [114.58, 38.00, 22], itemStyle: { color: '#F59E0B' }, extra: { city: '高新区', price: '9800', deals: 4, type: '产业园区' } },
+  { name: '客运段洗整基地', value: [114.47, 38.00, 18], itemStyle: { color: '#F59E0B' }, extra: { city: '桥西区', price: '8500', deals: 3, type: '综合配套' } },
 ]
 
 const defaultRegions = [

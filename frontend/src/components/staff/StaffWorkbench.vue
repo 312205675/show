@@ -182,12 +182,12 @@ const followLeads = computed(() =>
 )
 
 const todoItems = ref([
-  { id: 1, text: '城发投·翡翠城 3号楼签约跟进', done: false, priority: 'high' },
+  { id: 1, text: '城发投·云山樾 3号楼签约跟进', done: false, priority: 'high' },
   { id: 2, text: '提交本周回款报表', done: false, priority: 'high' },
-  { id: 3, text: '城发投·天颂 客户王先生回访', done: true, priority: 'medium' },
+  { id: 3, text: '城发投·云和赋 客户王先生回访', done: true, priority: 'medium' },
   { id: 4, text: '更新安居客渠道投放数据', done: false, priority: 'medium' },
-  { id: 5, text: '正定新区项目定价调整建议', done: false, priority: 'low' },
-  { id: 6, text: '栾城壹号院滞销房源分析', done: false, priority: 'low' },
+  { id: 5, text: '龙泉湖片区项目定价调整建议', done: false, priority: 'low' },
+  { id: 6, text: '城发投·云华滞销房源分析', done: false, priority: 'low' },
 ])
 
 function statusClass(status: string) {

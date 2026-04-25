@@ -58,10 +58,10 @@ export function generateCustomerProfiles(): CustomerProfile[] {
   return [
     { segment: '刚需首置', count: fluctuate(1860, 200), percent: fluctuate(38, 3, 1), avgBudget: fluctuate(120, 15), avgAge: fluctuate(28, 2), topSource: '安居客', preferredType: '高层80-100㎡', preferredArea: '长安区/新华区', color: '#4a9eff' },
     { segment: '改善置换', count: fluctuate(1280, 150), percent: fluctuate(26, 2, 1), avgBudget: fluctuate(220, 20), avgAge: fluctuate(36, 2), topSource: '贝壳链家', preferredType: '洋房120-150㎡', preferredArea: '裕华区/桥西区', color: '#00d68f' },
-    { segment: '投资理财', count: fluctuate(680, 80), percent: fluctuate(14, 2, 1), avgBudget: fluctuate(180, 25), avgAge: fluctuate(42, 3), topSource: '中介分销', preferredType: '商铺/小户型', preferredArea: '正定新区', color: '#ffab00' },
+    { segment: '投资理财', count: fluctuate(680, 80), percent: fluctuate(14, 2, 1), avgBudget: fluctuate(180, 25), avgAge: fluctuate(42, 3), topSource: '中介分销', preferredType: '商铺/小户型', preferredArea: '高铁片区', color: '#ffab00' },
     { segment: '学区需求', count: fluctuate(520, 60), percent: fluctuate(11, 2, 1), avgBudget: fluctuate(200, 20), avgAge: fluctuate(34, 2), topSource: '自渠', preferredType: '高层100-130㎡', preferredArea: '桥西区/长安区', color: '#a78bfa' },
-    { segment: '养老康养', count: fluctuate(360, 40), percent: fluctuate(7, 1, 1), avgBudget: fluctuate(150, 15), avgAge: fluctuate(55, 3), topSource: '老带新', preferredType: '洋房90-120㎡', preferredArea: '栾城区/正定新区', color: '#00e5ff' },
-    { segment: '高端改善', count: fluctuate(280, 30), percent: fluctuate(4, 1, 1), avgBudget: fluctuate(400, 50), avgAge: fluctuate(40, 3), topSource: '自渠', preferredType: '别墅/大平层', preferredArea: '裕华区', color: '#f472b6' },
+    { segment: '养老康养', count: fluctuate(360, 40), percent: fluctuate(7, 1, 1), avgBudget: fluctuate(150, 15), avgAge: fluctuate(55, 3), topSource: '老带新', preferredType: '洋房90-120㎡', preferredArea: '鹿泉区/龙泉湖片区', color: '#00e5ff' },
+    { segment: '高端改善', count: fluctuate(280, 30), percent: fluctuate(4, 1, 1), avgBudget: fluctuate(400, 50), avgAge: fluctuate(40, 3), topSource: '自渠', preferredType: '别墅/大平层', preferredArea: '裕华区/和平路', color: '#f472b6' },
   ]
 }
 
@@ -176,10 +176,10 @@ export interface SlowMovingItem {
 export function generateSlowMoving(): SlowMovingItem[] {
   const items: SlowMovingItem[] = []
   const slowProjects = [
-    { name: '城发投·翡翠城', priceRange: [14000, 17000] },
-    { name: '城发投·熙湖', priceRange: [12000, 14500] },
-    { name: '城发投·栾城壹号院', priceRange: [8500, 11000] },
-    { name: '城发投·御河上院', priceRange: [10500, 13000] },
+    { name: '城发投·云华', priceRange: [11000, 13500] },
+    { name: '城发投·云尚', priceRange: [12000, 14500] },
+    { name: '城发投·龙泉湖55号地', priceRange: [11500, 14500] },
+    { name: '城发投·麓湖四季', priceRange: [12500, 15500] },
   ]
   const reasons = ['定价偏高', '楼层不理想', '朝向偏西', '户型奇葩', '竞品分流', '配套未兑现', '距地铁较远', '采光不足']
   const unitTypes = ['3室2厅', '2室1厅', '4室2厅', '1室1厅', '3室1厅', '2室2厅']
@@ -217,12 +217,12 @@ export interface RegionItem {
 
 export function generateRegions(): RegionItem[] {
   return [
-    { name: '裕华区', totalSales: fluctuate(32.5, 5, 1), dealCount: fluctuate(180, 20), avgPrice: fluctuate(17500, 1000), depletionRate: fluctuate(72, 5, 1), returnRate: fluctuate(78, 5, 1), inventoryPressure: fluctuate(35, 10), riskLevel: 'low', projects: 4, suggestion: '经营稳健，可适度加推' },
-    { name: '长安区', totalSales: fluctuate(28.2, 4, 1), dealCount: fluctuate(210, 25), avgPrice: fluctuate(16800, 800), depletionRate: fluctuate(65, 6, 1), returnRate: fluctuate(72, 6, 1), inventoryPressure: fluctuate(48, 10), riskLevel: 'medium', projects: 5, suggestion: '关注去化节奏，加强渠道' },
-    { name: '桥西区', totalSales: fluctuate(22.8, 3, 1), dealCount: fluctuate(145, 15), avgPrice: fluctuate(18200, 900), depletionRate: fluctuate(58, 7, 1), returnRate: fluctuate(68, 5, 1), inventoryPressure: fluctuate(55, 12), riskLevel: 'medium', projects: 2, suggestion: '高端盘去化偏慢，需精准营销' },
-    { name: '新华区', totalSales: fluctuate(15.6, 2, 1), dealCount: fluctuate(120, 15), avgPrice: fluctuate(13200, 600), depletionRate: fluctuate(62, 8, 1), returnRate: fluctuate(75, 5, 1), inventoryPressure: fluctuate(42, 10), riskLevel: 'low', projects: 2, suggestion: '性价比板块，刚需客户充足' },
-    { name: '正定新区', totalSales: fluctuate(12.3, 2, 1), dealCount: fluctuate(95, 10), avgPrice: fluctuate(11800, 500), depletionRate: fluctuate(45, 8, 1), returnRate: fluctuate(60, 8, 1), inventoryPressure: fluctuate(72, 10), riskLevel: 'high', projects: 2, suggestion: '库存压力大，建议特价房+公积金合作' },
-    { name: '栾城区', totalSales: fluctuate(6.8, 1, 1), dealCount: fluctuate(65, 8), avgPrice: fluctuate(9900, 400), depletionRate: fluctuate(38, 10, 1), returnRate: fluctuate(55, 10, 1), inventoryPressure: fluctuate(85, 8), riskLevel: 'high', projects: 1, suggestion: '需重新评估定价，考虑以价换量' },
+    { name: '裕华区', totalSales: fluctuate(32.5, 5, 1), dealCount: fluctuate(180, 20), avgPrice: fluctuate(17500, 1000), depletionRate: fluctuate(72, 5, 1), returnRate: fluctuate(78, 5, 1), inventoryPressure: fluctuate(35, 10), riskLevel: 'low', projects: 2, suggestion: '经营稳健，可适度加推' },
+    { name: '长安区', totalSales: fluctuate(28.2, 4, 1), dealCount: fluctuate(210, 25), avgPrice: fluctuate(16800, 800), depletionRate: fluctuate(65, 6, 1), returnRate: fluctuate(72, 6, 1), inventoryPressure: fluctuate(48, 10), riskLevel: 'medium', projects: 4, suggestion: '关注去化节奏，加强渠道' },
+    { name: '桥西区', totalSales: fluctuate(22.8, 3, 1), dealCount: fluctuate(145, 15), avgPrice: fluctuate(18200, 900), depletionRate: fluctuate(58, 7, 1), returnRate: fluctuate(68, 5, 1), inventoryPressure: fluctuate(55, 12), riskLevel: 'medium', projects: 5, suggestion: '高端盘去化偏慢，需精准营销' },
+    { name: '新华区', totalSales: fluctuate(15.6, 2, 1), dealCount: fluctuate(120, 15), avgPrice: fluctuate(13200, 600), depletionRate: fluctuate(62, 8, 1), returnRate: fluctuate(75, 5, 1), inventoryPressure: fluctuate(42, 10), riskLevel: 'low', projects: 1, suggestion: '性价比板块，刚需客户充足' },
+    { name: '鹿泉区', totalSales: fluctuate(12.3, 2, 1), dealCount: fluctuate(95, 10), avgPrice: fluctuate(13800, 500), depletionRate: fluctuate(45, 8, 1), returnRate: fluctuate(60, 8, 1), inventoryPressure: fluctuate(72, 10), riskLevel: 'high', projects: 2, suggestion: '龙泉湖片区库存压力大，建议特价房+公积金合作' },
+    { name: '高新区', totalSales: fluctuate(6.8, 1, 1), dealCount: fluctuate(65, 8), avgPrice: fluctuate(9900, 400), depletionRate: fluctuate(38, 10, 1), returnRate: fluctuate(55, 10, 1), inventoryPressure: fluctuate(85, 8), riskLevel: 'high', projects: 1, suggestion: '产业配套项目，需精准定位客群' },
   ]
 }
 
@@ -385,7 +385,7 @@ export function generatePredictions(): PredictionItem[] {
       confidence: fluctuate(75, 10, 1),
       trend: 'down',
       unit: '月',
-      advice: '库存压力有望缓解，关注正定新区去化',
+      advice: '库存压力有望缓解，关注龙泉湖片区去化',
     },
     {
       indicator: '回款率',

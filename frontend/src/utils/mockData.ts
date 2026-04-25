@@ -13,22 +13,22 @@ export function fluctuate(base: number, range: number, decimals = 0): number {
 // 真实参考：石家庄城发投集团旗下楼盘
 
 export const PROJECT_LIST = [
-  { name: '城发投·翡翠城', city: '裕华区', district: '东南板块', avgPrice: 16500 },
-  { name: '城发投·锦绣学府', city: '长安区', district: '东北板块', avgPrice: 14200 },
-  { name: '城发投·天颂', city: '桥西区', district: '中心板块', avgPrice: 18800 },
-  { name: '城发投·熙湖', city: '新华区', district: '西北板块', avgPrice: 13500 },
-  { name: '城发投·荣盛华府', city: '裕华区', district: '东南板块', avgPrice: 21000 },
-  { name: '城发投·中央云锦', city: '长安区', district: '中心板块', avgPrice: 19500 },
-  { name: '城发投·尚宾城', city: '桥西区', district: '西南板块', avgPrice: 15800 },
-  { name: '城发投·御河上院', city: '正定新区', district: '正定板块', avgPrice: 12000 },
-  { name: '城发投·和府', city: '长安区', district: '东北板块', avgPrice: 17200 },
-  { name: '城发投·云和赋', city: '裕华区', district: '东南板块', avgPrice: 20500 },
-  { name: '城发投·裕华城', city: '裕华区', district: '东南板块', avgPrice: 14800 },
-  { name: '城发投·海棠苑', city: '新华区', district: '西北板块', avgPrice: 12800 },
-  { name: '城发投·瑞城', city: '长安区', district: '东北板块', avgPrice: 15600 },
-  { name: '城发投·长安国风', city: '长安区', district: '中心板块', avgPrice: 18500 },
-  { name: '城发投·栾城壹号院', city: '栾城区', district: '栾城板块', avgPrice: 9800 },
-  { name: '城发投·正定新区', city: '正定新区', district: '正定板块', avgPrice: 11500 },
+  { name: '城发投·云山樾', city: '长安区', district: '和平路板块', avgPrice: 18800 },
+  { name: '城发投·云澜悦府', city: '长安区', district: '和平路板块', avgPrice: 18500 },
+  { name: '城发投·云和赋', city: '桥西区', district: '高铁板块', avgPrice: 21000 },
+  { name: '城发投·瑞晟府', city: '桥西区', district: '中心板块', avgPrice: 17800 },
+  { name: '城发投·云华', city: '裕华区', district: '东南板块', avgPrice: 12500 },
+  { name: '城发投·云尚', city: '新华区', district: '西北板块', avgPrice: 13500 },
+  { name: '城发投·瑞凝府', city: '长安区', district: '东北板块', avgPrice: 16200 },
+  { name: '城发投·云徽颂', city: '裕华区', district: '东南板块', avgPrice: 19200 },
+  { name: '城发投·雲境府', city: '桥西区', district: '西南板块', avgPrice: 17500 },
+  { name: '城发投·麓湖四季', city: '鹿泉区', district: '龙泉湖板块', avgPrice: 14800 },
+  { name: '东方禧', city: '长安区', district: '中心板块', avgPrice: 16800 },
+  { name: '城发投·龙泉湖55号地', city: '鹿泉区', district: '龙泉湖板块', avgPrice: 13800 },
+  { name: '高铁商务14号地', city: '桥西区', district: '高铁板块', avgPrice: 22000 },
+  { name: '自强路金融区', city: '桥西区', district: '中心板块', avgPrice: 25000 },
+  { name: '生物医药园一期', city: '高新区', district: '高新板块', avgPrice: 9800 },
+  { name: '客运段洗整基地', city: '桥西区', district: '高铁板块', avgPrice: 8500 },
 ]
 
 // ========== 核心KPI ==========
@@ -53,11 +53,11 @@ export function generateCoreKPI() {
 
 export function generateInsight() {
   const insights = [
-    { level: 'warn' as const, text: '当前去化率68.3%，库存压力集中在翡翠城与熙湖，回款率低于70%需关注' },
-    { level: 'good' as const, text: '本月成交环比增长8.2%，去化率持续回升，但锦绣学府回款滞后需跟进' },
+    { level: 'warn' as const, text: '当前去化率68.3%，库存压力集中在云华与云尚，回款率低于70%需关注' },
+    { level: 'good' as const, text: '本月成交环比增长8.2%，去化率持续回升，但瑞晟府回款滞后需跟进' },
     { level: 'danger' as const, text: '去化率降至61.5%，3个项目库存超200套，回款率仅62%——建议紧急调度' },
     { level: 'good' as const, text: '去化率72.1%超预期，回款率达81%，集团整体经营健康' },
-    { level: 'warn' as const, text: '回款率68.5%低于目标，天颂与云和赋回款异常，需专项督办' },
+    { level: 'warn' as const, text: '回款率68.5%低于目标，云山樾与云和赋回款异常，需专项督办' },
   ]
   return insights[rand(0, insights.length - 1)]
 }
@@ -115,7 +115,7 @@ export interface RiskItem {
 export function generateRiskDiagnosis(): RiskItem[] {
   const items: RiskItem[] = []
 
-  const unsalableProjects = ['城发投·翡翠城', '城发投·熙湖', '城发投·栾城壹号院']
+  const unsalableProjects = ['城发投·云华', '城发投·云尚', '城发投·龙泉湖55号地']
   const count = rand(1, 3)
   for (let i = 0; i < count && i < unsalableProjects.length; i++) {
     const months = rand(3, 8)
@@ -128,7 +128,7 @@ export function generateRiskDiagnosis(): RiskItem[] {
     })
   }
 
-  const returnAbnormal = ['城发投·天颂', '城发投·云和赋', '城发投·荣盛华府']
+  const returnAbnormal = ['城发投·云山樾', '城发投·云和赋', '城发投·瑞晟府']
   const rCount = rand(1, 3)
   for (let i = 0; i < rCount && i < returnAbnormal.length; i++) {
     const gap = rand(15, 35, 1)
@@ -141,7 +141,7 @@ export function generateRiskDiagnosis(): RiskItem[] {
     })
   }
 
-  const highInventory = ['城发投·御河上院', '城发投·正定新区', '城发投·海棠苑']
+  const highInventory = ['城发投·龙泉湖55号地', '城发投·麓湖四季', '城发投·云尚']
   const hCount = rand(1, 3)
   for (let i = 0; i < hCount && i < highInventory.length; i++) {
     const units = rand(200, 500)
@@ -256,12 +256,12 @@ export interface RecommendationItem {
 
 export function generateRecommendations(): RecommendationItem[] {
   const allRecommendations: RecommendationItem[] = [
-    { id: 1, priority: 'urgent', category: '去化', title: '加速滞销项目去化', description: '翡翠城、熙湖连续3月去化率低于30%，建议启动限时优惠+渠道加推', impact: '预计提升去化率8-12个百分点', project: '城发投·翡翠城' },
-    { id: 2, priority: 'urgent', category: '回款', title: '专项督办回款异常项目', description: '天颂、云和赋回款率低于目标20个百分点，需催办按揭+启动逾期催收', impact: '预计回收资金1.2-1.8亿', project: '城发投·天颂' },
-    { id: 3, priority: 'important', category: '库存', title: '正定新区库存减压', description: '御河上院+正定新区合计库存超500套，建议特价房+公积金合作方案', impact: '预计减少库存120-180套', project: '城发投·御河上院' },
-    { id: 4, priority: 'important', category: '定价', title: '栾城板块价格策略调整', description: '栾城壹号院均价9800元/㎡，区域竞品降价5-8%，建议跟进调整或增加附加值', impact: '预计提升来访量30%', project: '城发投·栾城壹号院' },
+    { id: 1, priority: 'urgent', category: '去化', title: '加速滞销项目去化', description: '云华、云尚连续3月去化率低于30%，建议启动限时优惠+渠道加推', impact: '预计提升去化率8-12个百分点', project: '城发投·云华' },
+    { id: 2, priority: 'urgent', category: '回款', title: '专项督办回款异常项目', description: '云山樾、云和赋回款率低于目标20个百分点，需催办按揭+启动逾期催收', impact: '预计回收资金1.2-1.8亿', project: '城发投·云山樾' },
+    { id: 3, priority: 'important', category: '库存', title: '龙泉湖片区库存减压', description: '麓湖四季+龙泉湖55号地合计库存超500套，建议特价房+公积金合作方案', impact: '预计减少库存120-180套', project: '城发投·麓湖四季' },
+    { id: 4, priority: 'important', category: '定价', title: '高新板块价格策略调整', description: '生物医药园一期均价9800元/㎡，区域竞品降价5-8%，建议跟进调整或增加附加值', impact: '预计提升来访量30%', project: '生物医药园一期' },
     { id: 5, priority: 'suggested', category: '渠道', title: '优化渠道佣金结构', description: '当前渠道成交占比42%但佣金成本偏高，建议调整分级佣金+自渠建设', impact: '预计降低获客成本15-20%' },
-    { id: 6, priority: 'suggested', category: '去化', title: '热点项目加推节奏优化', description: '荣盛华府、中央云锦去化率超85%，建议加快后续批次推盘节奏', impact: '预计提前1-2月完成年度目标', project: '城发投·荣盛华府' },
+    { id: 6, priority: 'suggested', category: '去化', title: '热点项目加推节奏优化', description: '云山樾、云和赋去化率超85%，建议加快后续批次推盘节奏', impact: '预计提前1-2月完成年度目标', project: '城发投·云和赋' },
   ]
   const count = rand(4, 6)
   const shuffled = allRecommendations.sort(() => Math.random() - 0.5)

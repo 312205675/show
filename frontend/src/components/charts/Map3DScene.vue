@@ -37,18 +37,18 @@ interface ProjectNode {
 }
 
 const projects: ProjectNode[] = [
-  { name: '翡翠城', x: -8, z: -6, height: 14, color: 0x4a9eff, sales: '8.2亿', status: '健康' },
-  { name: '御河上院', x: -3, z: -8, height: 10, color: 0x00d68f, sales: '5.6亿', status: '健康' },
-  { name: '海棠苑', x: 3, z: -6, height: 6, color: 0xffab00, sales: '3.1亿', status: '关注' },
-  { name: '锦绣学府', x: 8, z: -3, height: 12, color: 0x4a9eff, sales: '7.8亿', status: '健康' },
-  { name: '天颂', x: -6, z: 2, height: 16, color: 0xa78bfa, sales: '9.5亿', status: '高端' },
-  { name: '中央云锦', x: 0, z: 0, height: 11, color: 0x4a9eff, sales: '6.2亿', status: '健康' },
-  { name: '正定新区', x: 6, z: 2, height: 5, color: 0xff4757, sales: '1.8亿', status: '风险' },
-  { name: '栾城壹号院', x: -4, z: 6, height: 4, color: 0xff4757, sales: '1.2亿', status: '风险' },
-  { name: '尚宾城', x: 3, z: 7, height: 8, color: 0xffab00, sales: '4.3亿', status: '关注' },
-  { name: '长安国风', x: 9, z: 6, height: 13, color: 0x00d68f, sales: '7.1亿', status: '健康' },
-  { name: '荣盛华府', x: -9, z: -1, height: 18, color: 0x60a5fa, sales: '12.3亿', status: '标杆' },
-  { name: '裕华城', x: 7, z: -8, height: 9, color: 0x4a9eff, sales: '5.0亿', status: '健康' },
+  { name: '云山樾', x: -8, z: -6, height: 14, color: 0x4a9eff, sales: '8.2亿', status: '热销' },
+  { name: '云澜悦府', x: -3, z: -8, height: 13, color: 0x4a9eff, sales: '7.5亿', status: '热销' },
+  { name: '云和赋', x: 3, z: -6, height: 16, color: 0xa78bfa, sales: '9.8亿', status: '高端' },
+  { name: '瑞晟府', x: 8, z: -3, height: 10, color: 0xffab00, sales: '5.2亿', status: '关注' },
+  { name: '云华', x: -6, z: 2, height: 5, color: 0xff4757, sales: '2.1亿', status: '风险' },
+  { name: '云徽颂', x: 0, z: 0, height: 15, color: 0x00d68f, sales: '9.2亿', status: '标杆' },
+  { name: '雲境府', x: 6, z: 2, height: 11, color: 0x4a9eff, sales: '6.5亿', status: '健康' },
+  { name: '麓湖四季', x: -4, z: 6, height: 6, color: 0xffab00, sales: '3.2亿', status: '关注' },
+  { name: '东方禧', x: 3, z: 7, height: 12, color: 0x00d68f, sales: '7.1亿', status: '健康' },
+  { name: '龙泉湖55号地', x: -9, z: -1, height: 4, color: 0xff4757, sales: '1.5亿', status: '风险' },
+  { name: '高铁商务14号地', x: 7, z: -8, height: 18, color: 0x60a5fa, sales: '12.3亿', status: '标杆' },
+  { name: '瑞凝府', x: 9, z: 6, height: 8, color: 0x4a9eff, sales: '4.8亿', status: '已交付' },
 ]
 
 function init() {

@@ -225,12 +225,12 @@ const messages = ref<ChatMsg[]>([
 ])
 
 const tips = [
-  '今日成交有所上升，关注正定新区动向',
-  '城发投·翡翠城去化率领先，建议加大推广',
-  '栾城区回款率偏低，建议专项催收',
+  '今日成交有所上升，关注龙泉湖片区动向',
+  '城发投·云山樾去化率领先，建议加大推广',
+  '高新板块回款率偏低，建议专项催收',
   '抖音渠道转化率2.0%，低于行业均值',
   '老带新渠道效果最佳，转化率22%',
-  '裕华区本月成交38套，区域第一',
+  '桥西区本月成交38套，区域第一',
   '本月环比增长5.2%，整体趋势向好',
   '库存去化周期14.2月，需关注滞销房源',
 ]
@@ -296,16 +296,16 @@ function generateReply(input: string): string {
     return `今日成交${fluctuate(18, 6)}套，本月累计${fluctuate(386, 40)}套，环比增长${fluctuate(5, 3).toFixed(1)}%。裕华区表现最佳。`
   }
   if (lower.includes('库存') || lower.includes('滞销')) {
-    return `当前库存${fluctuate(3280, 200)}套，货值${fluctuate(38, 4).toFixed(1)}亿，去化周期${fluctuate(14, 3).toFixed(1)}个月。栾城区和正定新区去化较慢，需重点关注。`
+    return `当前库存${fluctuate(3280, 200)}套，货值${fluctuate(38, 4).toFixed(1)}亿，去化周期${fluctuate(14, 3).toFixed(1)}个月。鹿泉区和高新板块去化较慢，需重点关注。`
   }
   if (lower.includes('回款') || lower.includes('资金')) {
-    return `总回款率${fluctuate(76, 6).toFixed(1)}%，回款金额${fluctuate(62, 8).toFixed(1)}亿。栾城区回款率最低，建议启动专项催收。`
+    return `总回款率${fluctuate(76, 6).toFixed(1)}%，回款金额${fluctuate(62, 8).toFixed(1)}亿。高新板块回款率最低，建议启动专项催收。`
   }
   if (lower.includes('渠道')) {
     return `老带新渠道转化率最高(22%)，抖音渠道仅2.0%。建议加大老带新激励力度，优化线上渠道投放策略。`
   }
   if (lower.includes('风险') || lower.includes('预警')) {
-    return `当前${fluctuate(3, 1)}个项目处于预警状态，主要集中在正定新区和栾城区。主要风险为库存去化慢和回款率偏低。`
+    return `当前${fluctuate(3, 1)}个项目处于预警状态，主要集中在鹿泉区和高新板块。主要风险为库存去化慢和回款率偏低。`
   }
   if (lower.includes('客户') || lower.includes('画像')) {
     return `主力客群为改善型需求(45%)，预算区间120-200万。年龄集中在30-45岁，主要来源为老带新和线上渠道。`

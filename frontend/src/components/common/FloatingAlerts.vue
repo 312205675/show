@@ -43,10 +43,10 @@ const alertPool = computed<AlertEntry[]>(() => {
   // Add some general alerts
   items.push(
     { severity: 'info', text: '裕华区今日成交8套，去化率持续领先', tag: '热区' },
-    { severity: 'warn', text: '正定新区库存去化周期超24个月，需关注', tag: '预警' },
-    { severity: 'info', text: '城发投·荣盛华府本月销售目标完成率92%', tag: '进度' },
+    { severity: 'warn', text: '鹿泉区库存去化周期超24个月，需关注', tag: '预警' },
+    { severity: 'info', text: '城发投·云山樾本月销售目标完成率92%', tag: '进度' },
     { severity: 'warn', text: '抖音渠道转化率仅2.0%，低于行业均值', tag: '渠道' },
-    { severity: 'danger', text: '栾城区回款率降至55%，建议启动专项催收', tag: '回款' },
+    { severity: 'danger', text: '高新区回款率降至55%，建议启动专项催收', tag: '回款' },
     { severity: 'info', text: '老带新渠道转化率22%，远超其他渠道', tag: '亮点' },
   )
 
