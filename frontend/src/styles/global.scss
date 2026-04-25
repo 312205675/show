@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: $font-cn;
+  color: $gray-200;
+  background: $dark-950;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 0.4s ease, color 0.3s ease;
+}
+
+// Scrollbar
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: $scrollbar-thumb;
+  border-radius: 2px;
+}
+
+// Panel
+.panel {
+  background: $panel-bg;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+  box-shadow: $shadow-sm;
+  transform-style: preserve-3d;
+  perspective: 800px;
+}
+
+.panel-title {
+  font-family: $font-cn;
+  font-size: 12px;
+  font-weight: 600;
+  color: $gray-400;
+  padding: 10px 14px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.5px;
+
+  &::before {
+    content: '';
+    width: 2px;
+    height: 10px;
+    background: $accent-blue;
+    border-radius: 1px;
+  }
+}
+
+// Digital number
+.digital-number {
+  font-family: $font-digital;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+// Status colors (strict system)
+.status-green { color: $accent-green; }
+.status-yellow { color: $accent-amber; }
+.status-red { color: $accent-red; }
+
+// 3D Card base
+.card-3d {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+// Animations
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(96, 165, 250, 0.08); }
+  50% { box-shadow: 0 0 20px rgba(96, 165, 250, 0.15); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+// Modal overlay
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: $overlay-bg;
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background: $panel-bg;
+  border: 1px solid $border-color;
+  border-radius: 12px;
+  min-width: 480px;
+  max-width: 640px;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+  box-shadow: $shadow-md;
+}

@@ -1,0 +1,64 @@
+// SCSS Variables — 通过 CSS 变量实现主题切换
+// 默认值对应 darkCarbon 主题 (Executive Dashboard 风格)
+
+// ===== 背景层级 =====
+$dark-950: var(--bg, #0F1217);
+$dark-900: var(--bg, #0F1217);
+$dark-800: var(--card-bg, #161B22);
+$panel-bg: var(--card-bg, #161B22);
+$header-bg: var(--header-bg, rgba(15, 18, 23, 0.95));
+$border-color: var(--border, rgba(255, 255, 255, 0.06));
+
+// ===== 表面 =====
+$surface: var(--surface, rgba(255, 255, 255, 0.03));
+$surface-hover: var(--surface-hover, rgba(255, 255, 255, 0.06));
+
+// ===== 文本层级 =====
+$gray-100: var(--text-title, #e2e8f0);   // 标题
+$gray-200: var(--text-body, #cbd5e1);     // 正文
+$gray-300: var(--text-body, #cbd5e1);     // 正文(备用)
+$gray-400: var(--text-caption, #64748b);  // 说明
+$gray-500: var(--text-caption, #64748b);  // 说明(备用)
+$gray-600: var(--text-caption, #64748b);  // 弱化
+
+// ===== 品牌色 =====
+$accent-blue: var(--primary, #60a5fa);
+$accent-blue-light: var(--primary-light, rgba(96, 165, 250, 0.12));
+
+// ===== 语义色 (严格颜色系统) =====
+$accent-green: var(--success, #22C55E);
+$accent-green-light: var(--success-light, rgba(34, 197, 94, 0.15));
+$accent-red: var(--danger, #EF4444);
+$accent-red-light: var(--danger-light, rgba(239, 68, 68, 0.15));
+$accent-amber: var(--warning, #F59E0B);
+$accent-amber-light: var(--warning-light, rgba(245, 158, 11, 0.15));
+$accent-cyan: var(--info, #06b6d4);
+$accent-cyan-light: var(--info-light, rgba(6, 182, 212, 0.10));
+$accent-purple: var(--purple, #8b5cf6);
+$accent-purple-light: var(--purple-light, rgba(139, 92, 246, 0.10));
+
+// ===== 语义色别名 =====
+$color-danger: $accent-red;
+$color-warn: $accent-amber;
+$color-success: $accent-green;
+$color-info: $accent-blue;
+
+// ===== 其他 =====
+$border-glow: var(--primary-light, rgba(96, 165, 250, 0.15));
+$panel-bg-hover: var(--surface-hover, rgba(255, 255, 255, 0.06));
+$bar-track: var(--bar-track, rgba(255, 255, 255, 0.05));
+$overlay-bg: var(--overlay, rgba(0, 0, 0, 0.6));
+$scrollbar-thumb: var(--scrollbar-thumb, rgba(255, 255, 255, 0.12));
+
+// ===== 阴影 =====
+$shadow-sm: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.5));
+$shadow-md: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.6));
+$shadow-glow: 0 0 12px rgba(96, 165, 250, 0.08);
+
+// ===== 字体 =====
+$font-digital: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+$font-display: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+$font-cn: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+
+// ===== 字体缩放 =====
+$font-scale: var(--font-scale, 1);
