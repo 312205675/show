@@ -48,6 +48,9 @@ const props = defineProps<{
   todayDeals: number
   monthDeals: number
   momGrowth: number
+  cashFlow: number
+  profitMargin: number
+  salesEfficiency: number
 }>()
 
 // Strict color system
@@ -119,10 +122,24 @@ const indicators = computed(() => [
 ])
 
 const verdict = computed(() => {
-  const { depletionRate, returnRate, momGrowth, inventoryUnits } = props
-  const score = (depletionRate >= 70 ? 1 : 0) + (returnRate >= 75 ? 1 : 0) + (momGrowth >= 0 ? 1 : 0) + (inventoryUnits <= 3000 ? 1 : 0)
-  if (score >= 3) return { level: 'good', icon: '●', text: '经营健康' }
-  if (score >= 2) return { level: 'warn', icon: '◐', text: '需关注' }
+  const { depletionRate, returnRate, momGrowth, inventoryUnits, cashFlow, profitMargin } = props
+  // 不等权评分：现金流(3分) > 回款率(2.5分) > 去化率(2分) > 利润率(1.5分) > 库存(1分) > 环比增长(0.5分)，总分10.5
+  let score = 0
+  // 现金流——最高权重，生死线
+  score += cashFlow >= 10 ? 3 : cashFlow >= 5 ? 1.5 : 0
+  // 回款率——资金回笼效率
+  score += returnRate >= 75 ? 2.5 : returnRate >= 60 ? 1.2 : 0
+  // 去化率——销售健康度
+  score += depletionRate >= 70 ? 2 : depletionRate >= 50 ? 1 : 0
+  // 利润率——盈利能力
+  score += profitMargin >= 12 ? 1.5 : profitMargin >= 8 ? 0.8 : 0
+  // 库存套数——资金占用
+  score += inventoryUnits <= 3000 ? 1 : inventoryUnits <= 3500 ? 0.5 : 0
+  // 环比增长——趋势方向（低权重，波动大）
+  score += momGrowth >= 5 ? 0.5 : momGrowth >= 0 ? 0.3 : 0
+
+  if (score >= 8) return { level: 'good', icon: '●', text: '经营健康' }
+  if (score >= 5) return { level: 'warn', icon: '◐', text: '需关注' }
   return { level: 'danger', icon: '◉', text: '需干预' }
 })
 </script>

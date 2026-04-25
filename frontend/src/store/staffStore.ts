@@ -143,22 +143,27 @@ const invStatuses: InventoryUnit['status'][] = ['可售', '已售', '预留', '�
 
 export const useStaffStore = defineStore('staff', () => {
   // ---- 项目信息 ----
-  const projects = ref<ProjectInfo[]>(PROJECT_LIST.map((p, i) => ({
+  const projects = ref<ProjectInfo[]>(PROJECT_LIST.map((p, i) => {
+    const totalUnits = rand(150, 1200)
+    const depletionRate = rand(25, 95, 1)
+    const soldUnits = Math.round(totalUnits * depletionRate / 100)
+    const status: 'green' | 'yellow' | 'red' = depletionRate >= 70 ? 'green' : depletionRate >= 50 ? 'yellow' : 'red'
+    return {
     id: `proj-${i}`,
     name: p.name,
     city: p.city,
     district: p.district,
     avgPrice: p.avgPrice,
-    totalUnits: rand(150, 1200),
-    soldUnits: rand(80, 600),
-    status: (['green', 'yellow', 'red'] as const)[rand(0, 2)],
+    totalUnits,
+    soldUnits,
+    status,
     openDate: recentDate(rand(30, 600)),
     developer: '石家庄城发投集团',
     contact: `张${['伟', '强', '磊', '军', '勇'][rand(0, 4)]}`,
     phone: `138${rand(10000000, 99999999)}`,
     address: `石家庄市${p.city}${p.district}`,
     description: `${p.name}位于${p.city}${p.district}，均价${p.avgPrice}元/㎡`,
-  })))
+  }}))
 
   // ---- 成交记录 ----
   const deals = ref<DealRecord[]>(Array.from({ length: 50 }, () => {
@@ -209,8 +214,13 @@ export const useStaffStore = defineStore('staff', () => {
     const leadCount = rand(20, 200)
     const visitCount = Math.round(leadCount * rand(20, 40) / 100)
     const dealCount = Math.round(visitCount * rand(15, 35) / 100)
-    const salesAmount = fluctuate(dealCount * 1.2, 3, 1)
-    const cost = rand(5000, 50000)
+    // salesAmount 单位：万元（dealCount × 均价 × 套均面积 / 10000）
+    const avgUnitArea = rand(85, 130)
+    const salesAmount = Number((dealCount * proj.avgPrice * avgUnitArea / 10000).toFixed(1))
+    const cost = rand(5000, 50000) // 元
+    // ROI = 销售额(万) / 渠道费用(万)
+    const costWan = Number((cost / 10000).toFixed(2))
+    const roi = costWan > 0 ? Number((salesAmount / costWan).toFixed(2)) : 0
     return {
       id: genId(),
       date: recentDate(rand(0, 30)),
@@ -224,7 +234,7 @@ export const useStaffStore = defineStore('staff', () => {
       salesAmount,
       cost,
       conversionRate: Number((dealCount / leadCount * 100).toFixed(1)),
-      roi: Number((salesAmount / (cost / 10000)).toFixed(2)),
+      roi,
     }
   }))
 

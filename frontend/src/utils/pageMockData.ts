@@ -30,10 +30,13 @@ export function generateChannels(): ChannelItem[] {
   return channels.map(ch => ({
     name: ch.name,
     type: ch.type,
+    // 销售额单位：亿
     salesAmount: fluctuate(ch.type === '自建' ? 28 : 12, 8, 1),
     dealCount: fluctuate(ch.type === '自建' ? 120 : 45, 20),
     conversionRate: fluctuate(ch.type === '自建' ? 18 : 8, 5, 1),
+    // 获客成本：线上渠道~280元，线下渠道~1800元
     costPerCustomer: fluctuate(ch.type === '线上' ? 280 : 1800, 300),
+    // ROI = 销售额(亿)×10000 / (成交数 × 获客成本/10000)，简化为合理范围
     roi: fluctuate(ch.type === '自建' ? 3.2 : 1.8, 0.8, 1),
     trend: fluctuate(5, 15, 1),
     color: ch.color,
@@ -55,13 +58,17 @@ export interface CustomerProfile {
 }
 
 export function generateCustomerProfiles(): CustomerProfile[] {
+  // 先生成原始占比，再归一化确保加和为100%
+  const rawPercents = [38, 26, 14, 11, 7, 4].map(p => fluctuate(p, 2))
+  const totalPercent = rawPercents.reduce((a, b) => a + b, 0)
+
   return [
-    { segment: '刚需首置', count: fluctuate(1860, 200), percent: fluctuate(38, 3, 1), avgBudget: fluctuate(120, 15), avgAge: fluctuate(28, 2), topSource: '安居客', preferredType: '高层80-100㎡', preferredArea: '长安区/新华区', color: '#4a9eff' },
-    { segment: '改善置换', count: fluctuate(1280, 150), percent: fluctuate(26, 2, 1), avgBudget: fluctuate(220, 20), avgAge: fluctuate(36, 2), topSource: '贝壳链家', preferredType: '洋房120-150㎡', preferredArea: '裕华区/桥西区', color: '#00d68f' },
-    { segment: '投资理财', count: fluctuate(680, 80), percent: fluctuate(14, 2, 1), avgBudget: fluctuate(180, 25), avgAge: fluctuate(42, 3), topSource: '中介分销', preferredType: '商铺/小户型', preferredArea: '高铁片区', color: '#ffab00' },
-    { segment: '学区需求', count: fluctuate(520, 60), percent: fluctuate(11, 2, 1), avgBudget: fluctuate(200, 20), avgAge: fluctuate(34, 2), topSource: '自渠', preferredType: '高层100-130㎡', preferredArea: '桥西区/长安区', color: '#a78bfa' },
-    { segment: '养老康养', count: fluctuate(360, 40), percent: fluctuate(7, 1, 1), avgBudget: fluctuate(150, 15), avgAge: fluctuate(55, 3), topSource: '老带新', preferredType: '洋房90-120㎡', preferredArea: '鹿泉区/龙泉湖片区', color: '#00e5ff' },
-    { segment: '高端改善', count: fluctuate(280, 30), percent: fluctuate(4, 1, 1), avgBudget: fluctuate(400, 50), avgAge: fluctuate(40, 3), topSource: '自渠', preferredType: '别墅/大平层', preferredArea: '裕华区/和平路', color: '#f472b6' },
+    { segment: '刚需首置', count: fluctuate(1860, 200), percent: Number((rawPercents[0] / totalPercent * 100).toFixed(1)), avgBudget: fluctuate(120, 15), avgAge: fluctuate(28, 2), topSource: '安居客', preferredType: '高层80-100㎡', preferredArea: '长安区/新华区', color: '#4a9eff' },
+    { segment: '改善置换', count: fluctuate(1280, 150), percent: Number((rawPercents[1] / totalPercent * 100).toFixed(1)), avgBudget: fluctuate(220, 20), avgAge: fluctuate(36, 2), topSource: '贝壳链家', preferredType: '洋房120-150㎡', preferredArea: '裕华区/桥西区', color: '#00d68f' },
+    { segment: '投资理财', count: fluctuate(680, 80), percent: Number((rawPercents[2] / totalPercent * 100).toFixed(1)), avgBudget: fluctuate(180, 25), avgAge: fluctuate(42, 3), topSource: '中介分销', preferredType: '商铺/小户型', preferredArea: '高铁片区', color: '#ffab00' },
+    { segment: '学区需求', count: fluctuate(520, 60), percent: Number((rawPercents[3] / totalPercent * 100).toFixed(1)), avgBudget: fluctuate(200, 20), avgAge: fluctuate(34, 2), topSource: '自渠', preferredType: '高层100-130㎡', preferredArea: '桥西区/长安区', color: '#a78bfa' },
+    { segment: '养老康养', count: fluctuate(360, 40), percent: Number((rawPercents[4] / totalPercent * 100).toFixed(1)), avgBudget: fluctuate(150, 15), avgAge: fluctuate(55, 3), topSource: '老带新', preferredType: '洋房90-120㎡', preferredArea: '鹿泉区/龙泉湖片区', color: '#00e5ff' },
+    { segment: '高端改善', count: fluctuate(280, 30), percent: Number((rawPercents[5] / totalPercent * 100).toFixed(1)), avgBudget: fluctuate(400, 50), avgAge: fluctuate(40, 3), topSource: '自渠', preferredType: '别墅/大平层', preferredArea: '裕华区/和平路', color: '#f472b6' },
   ]
 }
 
@@ -153,8 +160,11 @@ export function generateInventory(): InventoryItem[] {
     const soldUnits = Math.round(totalUnits * depletionRate / 100)
     const unsoldUnits = totalUnits - soldUnits
     const avgPrice = p.avgPrice
-    const unsoldValue = Number((unsoldUnits * avgPrice / 10000).toFixed(2))
-    const depletionCycle = Number((unsoldUnits / Math.max(1, soldUnits / 6)).toFixed(1))
+    const avgUnitArea = rand(85, 130)
+    const unsoldValue = Number((unsoldUnits * avgPrice * avgUnitArea / 100000000).toFixed(2))
+    // 去化周期 = 剩余套数 / 近6月月均去化量（而非累计已售/6）
+    const avgMonthlyDeals = rand(Math.max(3, Math.round(soldUnits / 18)), Math.max(8, Math.round(soldUnits / 10)))
+    const depletionCycle = Number((unsoldUnits / Math.max(1, avgMonthlyDeals)).toFixed(1))
     const priceChange = depletionRate < 40 ? fluctuate(-8, 5, 1) : fluctuate(2, 5, 1)
     const suggestedPrice = Math.round(avgPrice * (1 + priceChange / 100))
     const status: 'green' | 'yellow' | 'red' = depletionCycle <= 12 ? 'green' : depletionCycle <= 18 ? 'yellow' : 'red'
@@ -270,6 +280,22 @@ export function generateProjectDeepData(projectName: string): ProjectDeepData {
     problems.push({ title: '整体经营健康', reason: '去化率达标，回款节奏正常', suggestion: '持续关注市场变化，保持当前策略', severity: 'info' })
   }
 
+  // 客户来源 — 归一化确保加和为100%
+  const rawSources = [32, 22, 15, 12, 10, 9].map(p => fluctuate(p, 3))
+  const totalSource = rawSources.reduce((a, b) => a + b, 0)
+  // 客户画像 — 归一化确保加和为100%
+  const rawSegPercents = [35, 28, 18, 12, 7].map(p => fluctuate(p, 3))
+  const totalSegPercent = rawSegPercents.reduce((a, b) => a + b, 0)
+  // 库存结构 — 确保 sold + unsold = total
+  const highTotal = rand(200, 600)
+  const highSold = rand(Math.round(highTotal * 0.3), Math.round(highTotal * 0.85))
+  const yangTotal = rand(80, 200)
+  const yangSold = rand(Math.round(yangTotal * 0.3), Math.round(yangTotal * 0.85))
+  const bieTotal = rand(20, 60)
+  const bieSold = rand(Math.round(bieTotal * 0.1), Math.round(bieTotal * 0.7))
+  const shangTotal = rand(30, 80)
+  const shangSold = rand(Math.round(shangTotal * 0.1), Math.round(shangTotal * 0.6))
+
   return {
     name: proj.name,
     city: proj.city,
@@ -282,25 +308,25 @@ export function generateProjectDeepData(projectName: string): ProjectDeepData {
       { name: '成交', count: closed, color: '#a78bfa' },
     ],
     customerSources: [
-      { name: '自渠', percent: fluctuate(32, 5, 1), color: '#4a9eff' },
-      { name: '贝壳', percent: fluctuate(22, 4, 1), color: '#00d68f' },
-      { name: '安居客', percent: fluctuate(15, 3, 1), color: '#ffab00' },
-      { name: '抖音', percent: fluctuate(12, 3, 1), color: '#a78bfa' },
-      { name: '老带新', percent: fluctuate(10, 2, 1), color: '#00e5ff' },
-      { name: '其他', percent: fluctuate(9, 2, 1), color: '#6b7590' },
+      { name: '自渠', percent: Number((rawSources[0] / totalSource * 100).toFixed(1)), color: '#4a9eff' },
+      { name: '贝壳', percent: Number((rawSources[1] / totalSource * 100).toFixed(1)), color: '#00d68f' },
+      { name: '安居客', percent: Number((rawSources[2] / totalSource * 100).toFixed(1)), color: '#ffab00' },
+      { name: '抖音', percent: Number((rawSources[3] / totalSource * 100).toFixed(1)), color: '#a78bfa' },
+      { name: '老带新', percent: Number((rawSources[4] / totalSource * 100).toFixed(1)), color: '#00e5ff' },
+      { name: '其他', percent: Number((rawSources[5] / totalSource * 100).toFixed(1)), color: '#6b7590' },
     ],
     customerSegments: [
-      { segment: '刚需首置', percent: fluctuate(35, 5, 1), avgAge: fluctuate(28, 2), avgBudget: fluctuate(120, 15), color: '#4a9eff' },
-      { segment: '改善置换', percent: fluctuate(28, 4, 1), avgAge: fluctuate(36, 2), avgBudget: fluctuate(220, 20), color: '#00d68f' },
-      { segment: '投资理财', percent: fluctuate(18, 3, 1), avgAge: fluctuate(42, 3), avgBudget: fluctuate(180, 25), color: '#ffab00' },
-      { segment: '学区需求', percent: fluctuate(12, 2, 1), avgAge: fluctuate(34, 2), avgBudget: fluctuate(200, 20), color: '#a78bfa' },
-      { segment: '高端改善', percent: fluctuate(7, 2, 1), avgAge: fluctuate(45, 3), avgBudget: fluctuate(400, 50), color: '#f472b6' },
+      { segment: '刚需首置', percent: Number((rawSegPercents[0] / totalSegPercent * 100).toFixed(1)), avgAge: fluctuate(28, 2), avgBudget: fluctuate(120, 15), color: '#4a9eff' },
+      { segment: '改善置换', percent: Number((rawSegPercents[1] / totalSegPercent * 100).toFixed(1)), avgAge: fluctuate(36, 2), avgBudget: fluctuate(220, 20), color: '#00d68f' },
+      { segment: '投资理财', percent: Number((rawSegPercents[2] / totalSegPercent * 100).toFixed(1)), avgAge: fluctuate(42, 3), avgBudget: fluctuate(180, 25), color: '#ffab00' },
+      { segment: '学区需求', percent: Number((rawSegPercents[3] / totalSegPercent * 100).toFixed(1)), avgAge: fluctuate(34, 2), avgBudget: fluctuate(200, 20), color: '#a78bfa' },
+      { segment: '高端改善', percent: Number((rawSegPercents[4] / totalSegPercent * 100).toFixed(1)), avgAge: fluctuate(45, 3), avgBudget: fluctuate(400, 50), color: '#f472b6' },
     ],
     inventoryStructure: [
-      { type: '高层', total: rand(200, 600), sold: rand(100, 400), unsold: rand(50, 200) },
-      { type: '洋房', total: rand(80, 200), sold: rand(40, 150), unsold: rand(20, 80) },
-      { type: '别墅', total: rand(20, 60), sold: rand(5, 40), unsold: rand(5, 30) },
-      { type: '商铺', total: rand(30, 80), sold: rand(10, 40), unsold: rand(10, 50) },
+      { type: '高层', total: highTotal, sold: highSold, unsold: highTotal - highSold },
+      { type: '洋房', total: yangTotal, sold: yangSold, unsold: yangTotal - yangSold },
+      { type: '别墅', total: bieTotal, sold: bieSold, unsold: bieTotal - bieSold },
+      { type: '商铺', total: shangTotal, sold: shangSold, unsold: shangTotal - shangSold },
     ],
     aiDiagnosis: {
       score: rand(35, 90),

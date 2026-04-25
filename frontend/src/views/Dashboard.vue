@@ -98,11 +98,11 @@
                 </div>
               </div>
 
-              <div class="kpi-card" :class="adjustedKPI.profitMargin >= 20 ? 'healthy' : adjustedKPI.profitMargin >= 15 ? 'warning' : 'danger'" @click="openKPIDetail({ label: '利润率', value: adjustedKPI.profitMargin, color: adjustedKPI.profitMargin >= 20 ? 'var(--success)' : adjustedKPI.profitMargin >= 15 ? 'var(--warning)' : 'var(--danger)' })">
+              <div class="kpi-card" :class="adjustedKPI.profitMargin >= 12 ? 'healthy' : adjustedKPI.profitMargin >= 8 ? 'warning' : 'danger'" @click="openKPIDetail({ label: '利润率', value: adjustedKPI.profitMargin, color: adjustedKPI.profitMargin >= 12 ? 'var(--success)' : adjustedKPI.profitMargin >= 8 ? 'var(--warning)' : 'var(--danger)' })">
                 <div class="kpi-label">利润率</div>
                 <div class="kpi-main">
-                  <DigitalFlipper :value="adjustedKPI.profitMargin" :decimals="1" :size="34" :color="adjustedKPI.profitMargin >= 20 ? 'var(--success)' : adjustedKPI.profitMargin >= 15 ? 'var(--warning)' : 'var(--danger)'" />
-                  <span class="kpi-unit" :style="{ color: adjustedKPI.profitMargin >= 20 ? 'var(--success)' : adjustedKPI.profitMargin >= 15 ? 'var(--warning)' : 'var(--danger)' }">%</span>
+                  <DigitalFlipper :value="adjustedKPI.profitMargin" :decimals="1" :size="34" :color="adjustedKPI.profitMargin >= 12 ? 'var(--success)' : adjustedKPI.profitMargin >= 8 ? 'var(--warning)' : 'var(--danger)'" />
+                  <span class="kpi-unit" :style="{ color: adjustedKPI.profitMargin >= 12 ? 'var(--success)' : adjustedKPI.profitMargin >= 8 ? 'var(--warning)' : 'var(--danger)' }">%</span>
                 </div>
               </div>
 
@@ -660,10 +660,6 @@ const PRESENT_INTERVAL = 15000 // 15 seconds per page
 // Period selector
 const period = ref<'day' | 'week' | 'month' | 'year'>('month')
 const periodLabels: Record<string, string> = { day: '日', week: '周', month: '月', year: '年' }
-const periodMultiplier = computed(() => {
-  const m: Record<string, number> = { day: 0.03, week: 0.23, month: 1, year: 12 }
-  return m[period.value] ?? 1
-})
 
 // Risk carousel
 const riskCarouselIdx = ref(0)
@@ -769,18 +765,24 @@ const growthColor = computed(() => store.coreKPI.momGrowth >= 5 ? 'var(--success
 const growthClass = computed(() => store.coreKPI.momGrowth >= 5 ? 'healthy' : store.coreKPI.momGrowth >= 0 ? 'normal' : 'danger')
 
 // Period-adjusted KPI values
+// 规则：累计性指标（销售额、回款、库存、现金流）不做周期倍率；增量性指标（今日成交、环比增长）做周期缩放
 const adjustedKPI = computed(() => {
   const kpi = store.coreKPI
-  const m = periodMultiplier.value
+  const p = period.value
+  // 仅增量指标按周期缩放
+  const todayDealMap: Record<string, number> = { day: kpi.todayDeals, week: Math.round(kpi.todayDeals * 5), month: kpi.monthDeals, year: Math.round(kpi.monthDeals * 12) }
+  const momGrowthMap: Record<string, number> = { day: Number((kpi.momGrowth * 3).toFixed(1)), week: Number((kpi.momGrowth * 1.5).toFixed(1)), month: kpi.momGrowth, year: Number((kpi.momGrowth * 0.5).toFixed(1)) }
   return {
     depletionRate: kpi.depletionRate,
-    totalSales: Number((kpi.totalSales * m).toFixed(1)),
+    totalSales: kpi.totalSales,
     returnRate: kpi.returnRate,
-    inventoryUnits: Math.round(kpi.inventoryUnits / m),
-    inventoryValue: Number((kpi.inventoryValue / m).toFixed(1)),
-    cashFlow: Number((kpi.cashFlow * m).toFixed(1)),
+    inventoryUnits: kpi.inventoryUnits,
+    inventoryValue: kpi.inventoryValue,
+    cashFlow: kpi.cashFlow,
     profitMargin: kpi.profitMargin,
-    momGrowth: Number((kpi.momGrowth * (m < 1 ? 3 : m > 1 ? 0.5 : 1)).toFixed(1)),
+    todayDeals: todayDealMap[p] ?? kpi.todayDeals,
+    monthDeals: kpi.monthDeals,
+    momGrowth: momGrowthMap[p] ?? kpi.momGrowth,
   }
 })
 
@@ -796,10 +798,10 @@ const statusPieData = computed(() => [
   { name: '预警项目', value: redProjects.value.length },
 ])
 
-// Bar chart data - top 6 projects by sales
+// Bar chart data - top 6 projects by sales (salesAmount 单位为亿)
 const barProjects = computed(() => store.projectMatrix.slice(0, 6).map(p => p.name.replace('城发投·', '')))
-const barTarget = computed(() => store.projectMatrix.slice(0, 6).map(() => fluctuate(15000, 3000)))
-const barActual = computed(() => store.projectMatrix.slice(0, 6).map(p => Math.round(p.salesAmount * 10000)))
+const barTarget = computed(() => store.projectMatrix.slice(0, 6).map(() => fluctuate(15, 3)))
+const barActual = computed(() => store.projectMatrix.slice(0, 6).map(p => Number(p.salesAmount.toFixed(1))))
 
 // Area map data
 const areaMapData = computed(() => {

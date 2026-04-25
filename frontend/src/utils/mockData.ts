@@ -37,15 +37,19 @@ export function generateCoreKPI() {
   const depletionRate = fluctuate(68, 8, 1)
   const totalSales = fluctuate(86.5, 12, 2)
   const returnAmount = fluctuate(62.8, 10, 2)
-  const returnRate = fluctuate(76.5, 8, 1)
+  // 回款率应与去化率正相关：回款率 ≤ 去化率 × 缴款比例(0.85~1.0)
+  const paymentRatio = fluctuate(0.88, 0.08, 2) // 缴款比例
+  const returnRate = Number(Math.min(depletionRate * paymentRatio, 98).toFixed(1))
   const inventoryUnits = fluctuate(3280, 300)
   const inventoryValue = fluctuate(38.6, 6, 1)
   const todayDeals = fluctuate(18, 8)
   const monthDeals = fluctuate(386, 40)
   const momGrowth = fluctuate(5.2, 8, 1)
   const cashFlow = fluctuate(12.8, 5, 1)
-  const profitMargin = fluctuate(18.5, 4, 1)
-  const salesEfficiency = fluctuate(72, 10, 1)
+  // 利润率基准下调至10%，符合2024-2026年城投类国企实际情况
+  const profitMargin = fluctuate(10, 3.5, 1)
+  // 销售效率定义为"销售费效比"：每投入1元营销费换回的销售额倍数
+  const salesEfficiency = fluctuate(3.2, 0.8, 1)
   return { depletionRate, totalSales, returnAmount, returnRate, inventoryUnits, inventoryValue, todayDeals, monthDeals, momGrowth, cashFlow, profitMargin, salesEfficiency }
 }
 
@@ -86,17 +90,25 @@ export function generateProjectMatrix(): ProjectItem[] {
     const totalUnits = rand(150, 1200)
     const depletionRate = rand(25, 95, 1)
     const soldUnits = Math.round(totalUnits * depletionRate / 100)
-    const salesAmount = Number((soldUnits * avgPrice / 10000).toFixed(2))
-    const returnRate = rand(40, 98, 1)
+    // 销售额 = 已售套数 × 均价 × 套均面积(100㎡) / 100000000 → 亿
+    const avgUnitArea = rand(85, 130)
+    const salesAmount = Number((soldUnits * avgPrice * avgUnitArea / 100000000).toFixed(2))
+    // 回款率与去化率正相关：回款率 ≤ 去化率 × 缴款比例
+    const paymentRatio = fluctuate(0.88, 0.08, 2)
+    const returnRate = Number(Math.min(depletionRate * paymentRatio, 98).toFixed(1))
     const status: 'green' | 'yellow' | 'red' = depletionRate >= 70 ? 'green' : depletionRate >= 50 ? 'yellow' : 'red'
 
     // 月度成交（近6个月）
     const monthlyDeals = Array.from({ length: 6 }, () => rand(5, 60))
     // 月度回款
     const returnMonthly = Array.from({ length: 6 }, () => rand(40, 98, 1))
-    // 户型分布
-    const types = ['高层', '洋房', '别墅', '商铺']
-    const topTypes = types.slice(0, rand(2, 4)).map(t => ({ name: t, percent: rand(10, 50) }))
+    // 户型分布 — 归一化确保加和为100%
+    const allTypes = ['高层', '洋房', '别墅', '商铺']
+    const typeCount = rand(2, 4)
+    const selectedTypes = allTypes.slice(0, typeCount)
+    const rawPercents = selectedTypes.map(() => rand(10, 50))
+    const totalRaw = rawPercents.reduce((a, b) => a + b, 0)
+    const topTypes = selectedTypes.map((t, i) => ({ name: t, percent: Number((rawPercents[i] / totalRaw * 100).toFixed(1)) }))
 
     return { name, city, district, avgPrice, depletionRate, totalUnits, soldUnits, salesAmount, returnRate, status, monthlyDeals, returnMonthly, topTypes }
   })
@@ -150,7 +162,7 @@ export function generateRiskDiagnosis(): RiskItem[] {
       projectName: highInventory[i],
       description: `剩余${units}套未售，去化周期超18个月`,
       severity: units >= 350 ? 'danger' : 'warn',
-      detail: `${highInventory[i]}剩余${units}套未售，货值约${(units * 1.2 / 10000).toFixed(1)}亿。去化周期超18个月，占用资金量大。建议：①启动特价房促销；②与公积金中心合作加快放款。`,
+      detail: `${highInventory[i]}剩余${units}套未售，货值约${(units * 0.0135).toFixed(1)}亿。去化周期超18个月，占用资金量大。建议：①启动特价房促销；②与公积金中心合作加快放款。`,
     })
   }
 
@@ -236,7 +248,8 @@ export function generateTargets(): TargetItem[] {
   ]
   return items.map(item => {
     const progress = Number((item.actual / item.target * 100).toFixed(1))
-    const gap = Number((item.actual - item.target * 0.75).toFixed(1))
+    // gap 直接表示与目标的差距：负数表示未达标
+    const gap = Number((item.actual - item.target).toFixed(1))
     const status: TargetItem['status'] = progress >= 80 ? 'on-track' : progress >= 65 ? 'at-risk' : 'behind'
     return { ...item, progress, gap, status }
   })
