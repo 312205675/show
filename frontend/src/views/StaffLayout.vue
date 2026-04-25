@@ -32,7 +32,7 @@
             <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.5" fill="none"/>
           </svg>
         </button>
-        <router-link to="/" class="back-dashboard" v-show="!sidebarCollapsed">
+        <router-link to="/dashboard" class="back-dashboard" v-show="!sidebarCollapsed">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L1 7h3v7h3v-4h2v4h3V7h3L8 1z"/></svg>
           <span>返回决策大盘</span>
         </router-link>
