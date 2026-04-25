@@ -8,6 +8,12 @@ import {
   generateDealTrend,
   generateReturnTrend,
   generateWeeklyTrend,
+  generateTargets,
+  generateRecommendations,
+  generateRiskRadar,
+  type TargetItem,
+  type RecommendationItem,
+  type RiskRadarData,
 } from '@/utils/mockData'
 import { generateHotProperties, generatePredictions } from '@/utils/pageMockData'
 
@@ -23,6 +29,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const hotProperties = ref(generateHotProperties())
   const predictions = ref(generatePredictions())
 
+  // 新增：年度目标追踪
+  const targets = ref<TargetItem[]>(generateTargets())
+  // 新增：智能决策建议
+  const recommendations = ref<RecommendationItem[]>(generateRecommendations())
+  // 新增：风险雷达
+  const riskRadar = ref<RiskRadarData>(generateRiskRadar())
+
   const lastUpdateTime = ref(new Date())
   const isRefreshing = ref(false)
 
@@ -37,6 +50,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
     weeklyTrend.value = generateWeeklyTrend()
     hotProperties.value = generateHotProperties()
     predictions.value = generatePredictions()
+    targets.value = generateTargets()
+    recommendations.value = generateRecommendations()
+    riskRadar.value = generateRiskRadar()
     lastUpdateTime.value = new Date()
     setTimeout(() => { isRefreshing.value = false }, 600)
   }
@@ -65,6 +81,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
     weeklyTrend,
     hotProperties,
     predictions,
+    targets,
+    recommendations,
+    riskRadar,
     lastUpdateTime,
     isRefreshing,
     refreshAll,

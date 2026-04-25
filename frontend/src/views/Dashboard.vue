@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard" :style="{ zoom: themeStore.fontScale }">
+  <div class="dashboard" :class="{ 'present-active': presentMode }" :style="{ zoom: themeStore.fontScale }">
     <!-- ===== Executive Header ===== -->
     <header class="exec-header">
       <div class="header-left">
@@ -25,6 +25,9 @@
           <span class="clock-time">{{ currentTime }}</span>
           <span class="clock-date">{{ currentDate }}</span>
         </div>
+        <button class="present-btn" :class="{ active: presentMode }" @click="togglePresentation" :title="presentMode ? '退出汇报模式' : '汇报模式'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </button>
         <button class="mute-btn" :class="{ muted: isMuted }" @click="toggleMute" :title="isMuted ? '取消静音' : '静音'">
           <svg v-if="!isMuted" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
           <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
@@ -117,6 +120,11 @@
               </div>
             </section>
 
+            <!-- ===== Annual Target Tracker ===== -->
+            <section v-if="currentPage === 0" class="target-banner">
+              <TargetTracker :targets="store.targets" />
+            </section>
+
             <!-- ===== Floating Risk Diagnosis Banner ===== -->
             <div class="floating-risk" :class="{ expanded: riskExpanded }" @click="riskExpanded = !riskExpanded">
               <div class="fr-header">
@@ -156,6 +164,10 @@
                     <button class="stack-tab" :class="{ active: leftActiveTab === 'areamap' }" @click="leftActiveTab = 'areamap'">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                       区域
+                    </button>
+                    <button class="stack-tab" :class="{ active: leftActiveTab === 'radar' }" @click="leftActiveTab = 'radar'">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="22" x2="12" y2="15.5"/><polyline points="22 8.5 12 15.5 2 8.5"/></svg>
+                      雷达
                     </button>
                   </div>
                   <!-- Stacked cards -->
@@ -210,6 +222,19 @@
                             <div class="area-dot" />
                           </div>
                         </div>
+                      </div>
+                    </div>
+
+                    <div class="panel-card stack-card" :class="{ 'stack-active': leftActiveTab === 'radar', 'stack-behind-1': leftActiveTab !== 'radar', 'is-fullscreen': fsKey === 'radar' }">
+                      <div class="panel-toolbar">
+                        <span class="panel-title"><span class="pt-bar" />风险雷达<span class="ph-count">六维评估</span></span>
+                        <button class="fs-btn" @click="toggleFs('radar')" :title="fsKey === 'radar' ? '退出全屏' : '全屏'">
+                          <svg v-if="fsKey !== 'radar'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                          <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6m0 0v6m0-6H4m6 0L4 20M20 10h-6m0 0V4m0 6h6m-6 0L20 4"/></svg>
+                        </button>
+                      </div>
+                      <div class="panel-body">
+                        <RiskRadar :data="store.riskRadar" />
                       </div>
                     </div>
                   </div>
@@ -346,34 +371,9 @@
                   </div>
                 </div>
 
-                <!-- Prediction Module -->
-                <div class="panel-card prediction-card">
-                  <div class="panel-toolbar">
-                    <span class="panel-title"><span class="pt-bar" />AI 预测<span class="ph-count">智能研判</span></span>
-                    <span class="pred-icon">✦</span>
-                  </div>
-                  <div class="panel-body pred-body">
-                    <div v-for="p in store.predictions.slice(0, 4)" :key="p.indicator" class="pred-row">
-                      <div class="pred-head">
-                        <span class="pred-name">{{ p.indicator }}</span>
-                        <span class="pred-trend" :class="p.trend">
-                          <svg v-if="p.trend === 'up'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
-                          <svg v-else-if="p.trend === 'down'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
-                          <svg v-else width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        </span>
-                      </div>
-                      <div class="pred-values">
-                        <span class="pred-current">{{ p.current }}{{ p.unit }}</span>
-                        <svg class="pred-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                        <span class="pred-predicted" :class="p.trend">{{ p.predicted }}{{ p.unit }}</span>
-                        <span class="pred-change" :class="p.change >= 0 ? 'up' : 'down'">{{ p.change >= 0 ? '+' : '' }}{{ p.change }}%</span>
-                      </div>
-                      <div class="pred-confidence">
-                        <div class="pred-conf-bar"><div class="pred-conf-fill" :style="{ width: p.confidence + '%' }" /></div>
-                        <span class="pred-conf-text">置信度 {{ p.confidence }}%</span>
-                      </div>
-                    </div>
-                  </div>
+                <!-- Decision Recommendations Module -->
+                <div class="panel-card decision-card">
+                  <DecisionRecommendations :items="store.recommendations" @select="openRecommendation" />
                 </div>
               </div>
             </div>
@@ -429,17 +429,17 @@
                 <RiskDiagnosis :risks="store.riskDiagnosis" @select="openRiskDetail" />
               </div>
               <div class="pred-3d-panel">
-                <div class="panel-toolbar"><span class="panel-title"><span class="pt-bar" />AI 预测</span><span class="pred-icon">✦</span></div>
+                <div class="panel-toolbar"><span class="panel-title"><span class="pt-bar" />智能决策建议</span><span class="pred-icon">✦</span></div>
                 <div class="pred-3d-body">
-                  <div v-for="p in store.predictions.slice(0, 3)" :key="p.indicator" class="pred-3d-row">
+                  <div v-for="r in store.recommendations.slice(0, 3)" :key="r.id" class="pred-3d-row" :class="r.priority" @click="openRecommendation(r)">
                     <div class="pred-3d-head">
-                      <span class="pred-3d-name">{{ p.indicator }}</span>
-                      <span class="pred-3d-change" :class="p.change >= 0 ? 'up' : 'down'">{{ p.change >= 0 ? '+' : '' }}{{ p.change }}%</span>
+                      <span class="pred-3d-name">{{ r.title }}</span>
+                      <span class="rec-mini-badge" :class="r.priority">{{ r.priority === 'urgent' ? '紧急' : r.priority === 'important' ? '重要' : '建议' }}</span>
                     </div>
                     <div class="pred-3d-vals">
-                      <span class="pred-3d-cur">{{ p.current }}{{ p.unit }}</span>
+                      <span class="pred-3d-cur">{{ r.category }}</span>
                       <span class="pred-3d-arrow">→</span>
-                      <span class="pred-3d-pred" :class="p.trend">{{ p.predicted }}{{ p.unit }}</span>
+                      <span class="pred-3d-pred" :class="r.priority === 'urgent' ? 'down' : 'up'">{{ r.impact.slice(0, 12) }}</span>
                     </div>
                   </div>
                 </div>
@@ -467,12 +467,57 @@
     <DetailModal :visible="!!activeKPI" :title="activeKPI?.label || ''" @close="activeKPI = null">
       <KPIDetail v-if="activeKPI" :kpi="activeKPI" />
     </DetailModal>
+    <DetailModal :visible="!!activeRecommendation" :title="activeRecommendation?.title || '决策建议'" @close="activeRecommendation = null">
+      <div v-if="activeRecommendation" class="rec-detail">
+        <div class="rec-detail-header">
+          <span class="rec-detail-priority" :class="activeRecommendation.priority">
+            {{ activeRecommendation.priority === 'urgent' ? '紧急' : activeRecommendation.priority === 'important' ? '重要' : '建议' }}
+          </span>
+          <span class="rec-detail-category">{{ activeRecommendation.category }}</span>
+          <span v-if="activeRecommendation.project" class="rec-detail-project">{{ activeRecommendation.project }}</span>
+        </div>
+        <div class="rec-detail-desc">{{ activeRecommendation.description }}</div>
+        <div class="rec-detail-impact">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>预期效果：{{ activeRecommendation.impact }}</span>
+        </div>
+      </div>
+    </DetailModal>
 
     <!-- ===== Notification Center (pop-up notifications) ===== -->
     <NotificationCenter />
 
     <!-- ===== AI Assistant Robot ===== -->
-    <AIAssistant />
+    <AIAssistant v-if="!presentMode" />
+
+    <!-- ===== Presentation Mode Overlay ===== -->
+    <Transition name="present">
+      <div v-if="presentMode" class="present-overlay" @click.self="togglePresentation">
+        <div class="present-top-bar">
+          <div class="present-brand">
+            <h1 class="brand">SMART<span class="brand-accent">ESTATE</span></h1>
+            <span class="present-sub">集团经营决策汇报</span>
+          </div>
+          <div class="present-info">
+            <span class="present-page-indicator">{{ currentPage + 1 }} / {{ pages.length }}</span>
+            <span class="present-page-name">{{ pages[currentPage].label }}</span>
+            <span class="present-clock">{{ currentTime }}</span>
+          </div>
+          <button class="present-exit" @click="togglePresentation">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            退出汇报
+          </button>
+        </div>
+        <div class="present-progress-bar">
+          <div class="present-progress-fill" :style="{ width: presentProgress + '%' }" />
+        </div>
+        <div class="present-hint">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 18 15 12 9 6"/></svg>
+          <span>自动轮播中 · 点击左右切换 · ESC退出</span>
+        </div>
+      </div>
+    </Transition>
 
     <!-- Swipe Hint -->
     <Transition name="fade">
@@ -492,18 +537,21 @@ import { useDashboardStore } from '@/store'
 import { useThemeStore } from '@/store/theme'
 import { useAutoRefresh } from '@/composables/useAutoRefresh'
 import { useSound } from '@/composables/useSound'
-import type { ProjectItem, RiskItem } from '@/utils/mockData'
+import type { ProjectItem, RiskItem, RecommendationItem } from '@/utils/mockData'
 import { fluctuate } from '@/utils/mockData'
 
 import InsightBar from '@/components/modules/InsightBar.vue'
 import BossKPI from '@/components/modules/BossKPI.vue'
 import RiskDiagnosis from '@/components/modules/RiskDiagnosis.vue'
+import DecisionRecommendations from '@/components/modules/DecisionRecommendations.vue'
+import TargetTracker from '@/components/modules/TargetTracker.vue'
 import CombinedTrendChart from '@/components/charts/CombinedTrendChart.vue'
 import PieDistribution from '@/components/charts/PieDistribution.vue'
 import BarComparison from '@/components/charts/BarComparison.vue'
 import GaugeChart from '@/components/charts/GaugeChart.vue'
 import Globe3D from '@/components/charts/Globe3D.vue'
 import ChinaMap from '@/components/charts/ChinaMap.vue'
+import RiskRadar from '@/components/charts/RiskRadar.vue'
 import DigitalFlipper from '@/components/common/DigitalFlipper.vue'
 import ThemeSwitcher from '@/components/common/ThemeSwitcher.vue'
 import ModeToggle from '@/components/common/ModeToggle.vue'
@@ -556,7 +604,52 @@ const showSwipeHint = ref(true)
 // Fullscreen state
 const fsKey = ref<string | null>(null)
 const riskExpanded = ref(false)
-const leftActiveTab = ref<'trends' | 'pie' | 'areamap'>('trends')
+const leftActiveTab = ref<'trends' | 'pie' | 'areamap' | 'radar'>('trends')
+
+// Presentation Mode
+const presentMode = ref(false)
+const presentAutoTimer = ref<ReturnType<typeof setInterval> | null>(null)
+const presentProgress = ref(0)
+const PRESENT_INTERVAL = 8000 // 8 seconds per page
+
+function togglePresentation() {
+  presentMode.value = !presentMode.value
+  if (presentMode.value) {
+    currentPage.value = 0
+    presentProgress.value = 0
+    startPresentAutoRotate()
+    playExpandSound()
+  } else {
+    stopPresentAutoRotate()
+  }
+}
+
+function startPresentAutoRotate() {
+  stopPresentAutoRotate()
+  presentProgress.value = 0
+  let elapsed = 0
+  presentAutoTimer.value = setInterval(() => {
+    elapsed += 100
+    presentProgress.value = (elapsed / PRESENT_INTERVAL) * 100
+    if (elapsed >= PRESENT_INTERVAL) {
+      elapsed = 0
+      presentProgress.value = 0
+      if (currentPage.value < pages.value.length - 1) {
+        currentPage.value++
+      } else {
+        currentPage.value = 0
+      }
+    }
+  }, 100)
+}
+
+function stopPresentAutoRotate() {
+  if (presentAutoTimer.value) {
+    clearInterval(presentAutoTimer.value)
+    presentAutoTimer.value = null
+  }
+  presentProgress.value = 0
+}
 
 function toggleFs(key: string) {
   fsKey.value = fsKey.value === key ? null : key
@@ -685,11 +778,17 @@ function handleWheel(e: WheelEvent) {
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'ArrowRight' && currentPage.value < pages.value.length - 1) {
     currentPage.value++
+    if (presentMode.value) { presentProgress.value = 0; startPresentAutoRotate() }
   } else if (e.key === 'ArrowLeft' && currentPage.value > 0) {
     currentPage.value--
-  } else if (e.key === 'Escape' && fsKey.value) {
-    fsKey.value = null
-    document.body.style.overflow = ''
+    if (presentMode.value) { presentProgress.value = 0; startPresentAutoRotate() }
+  } else if (e.key === 'Escape') {
+    if (fsKey.value) {
+      fsKey.value = null
+      document.body.style.overflow = ''
+    } else if (presentMode.value) {
+      togglePresentation()
+    }
   }
 }
 
@@ -710,6 +809,12 @@ function openKPIDetail(kpi: { label: string; value: number; color: string }) {
   activeKPI.value = kpi
 }
 
+function openRecommendation(item: RecommendationItem) {
+  activeRecommendation.value = item
+}
+
+const activeRecommendation = ref<RecommendationItem | null>(null)
+
 onMounted(() => {
   start(store.refreshAll)
   themeStore.applyTheme()
@@ -724,6 +829,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   stop()
+  stopPresentAutoRotate()
   if (clockTimer) clearInterval(clockTimer)
   window.removeEventListener('touchstart', handleTouchStart)
   window.removeEventListener('touchend', handleTouchEnd)
@@ -741,6 +847,14 @@ onUnmounted(() => {
   flex-direction: column;
   overflow: hidden;
   background: var(--bg, #0F1217);
+
+  &.present-active {
+    .exec-header { display: none; }
+    .dash-main { flex: 1; }
+    .target-banner { display: none; }
+    .floating-risk { display: none; }
+    .swipe-hint { display: none; }
+  }
 }
 
 // ===== Header =====
@@ -1615,16 +1729,25 @@ onUnmounted(() => {
 .trend-3d-panel { flex: 1; min-height: 0; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); overflow: hidden; }
 .risk-3d-panel { height: 200px; min-height: 140px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); overflow: auto; }
 
-.pred-3d-panel { border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); flex-shrink: 0; max-height: 160px; overflow-y: auto; }
+.pred-3d-panel { border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); flex-shrink: 0; max-height: 200px; overflow-y: auto; }
 .pred-3d-body { padding: 6px 10px; display: flex; flex-direction: column; gap: 6px; }
-.pred-3d-row { display: flex; flex-direction: column; gap: 2px; }
+.pred-3d-row { display: flex; flex-direction: column; gap: 2px; padding: 5px 6px; border-radius: 4px; cursor: pointer; transition: all 0.2s;
+  &.urgent { background: rgba(239,68,68,0.08); }
+  &.important { background: rgba(245,158,11,0.06); }
+  &.suggested { background: rgba(96,165,250,0.05); }
+  &:hover { transform: translateX(2px); }
+}
 .pred-3d-head { display: flex; justify-content: space-between; align-items: center; }
 .pred-3d-name { font-size: 10px; font-weight: 600; color: var(--text-title, #e2e8f0); }
-.pred-3d-change { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } }
+.rec-mini-badge { font-size: 8px; font-weight: 700; padding: 1px 4px; border-radius: 2px;
+  &.urgent { background: rgba(239,68,68,0.2); color: var(--danger, #EF4444); }
+  &.important { background: rgba(245,158,11,0.2); color: var(--warning, #F59E0B); }
+  &.suggested { background: rgba(96,165,250,0.15); color: var(--primary, #60a5fa); }
+}
 .pred-3d-vals { display: flex; align-items: center; gap: 4px; font-size: 10px; }
 .pred-3d-cur { color: var(--text-caption, #64748b); }
 .pred-3d-arrow { color: var(--text-caption, #64748b); }
-.pred-3d-pred { font-weight: 700; color: var(--text-body, #cbd5e1); &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } &.stable { color: var(--text-caption, #64748b); } }
+.pred-3d-pred { font-weight: 600; color: var(--text-body, #cbd5e1); &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } }
 
 // ===== Hot Properties =====
 .hot-props-card { flex-shrink: 0; max-height: 210px; }
@@ -1638,27 +1761,240 @@ onUnmounted(() => {
 .hot-views { display: flex; align-items: center; gap: 3px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--text-body, #cbd5e1); }
 .hot-growth { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } }
 
-// ===== Prediction Module =====
-.prediction-card { flex-shrink: 0; max-height: 260px; }
-.pred-icon { font-size: 12px; color: var(--primary, #60a5fa); animation: predGlow 2s ease-in-out infinite; }
-@keyframes predGlow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+// ===== Decision Recommendations =====
+.decision-card { flex-shrink: 0; max-height: 300px; }
 
-.pred-body { padding: 4px 10px 8px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
-.pred-row { display: flex; flex-direction: column; gap: 3px; }
-.pred-head { display: flex; justify-content: space-between; align-items: center; }
-.pred-name { font-size: 11px; font-weight: 600; color: var(--text-title, #e2e8f0); }
-.pred-trend { display: flex; align-items: center; &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } &.stable { color: var(--text-caption, #64748b); } }
+// ===== Recommendation Detail Modal =====
+.rec-detail {
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-.pred-values { display: flex; align-items: center; gap: 4px; }
-.pred-current { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-caption, #64748b); font-weight: 500; }
-.pred-arrow { color: var(--text-caption, #64748b); flex-shrink: 0; }
-.pred-predicted { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--text-body, #cbd5e1); &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } &.stable { color: var(--text-caption, #64748b); } }
-.pred-change { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; padding: 1px 4px; border-radius: 3px; &.up { background: rgba(34,197,94,0.12); color: var(--success, #22C55E); } &.down { background: rgba(239,68,68,0.12); color: var(--danger, #EF4444); } }
+.rec-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-.pred-confidence { display: flex; align-items: center; gap: 6px; }
-.pred-conf-bar { flex: 1; height: 4px; background: var(--bar-track, rgba(255,255,255,0.05)); border-radius: 2px; overflow: hidden; }
-.pred-conf-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--primary, #60a5fa), var(--success, #22C55E)); transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-.pred-conf-text { font-size: 9px; color: var(--text-caption, #64748b); flex-shrink: 0; white-space: nowrap; }
+.rec-detail-priority {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+
+  &.urgent { background: rgba(239, 68, 68, 0.15); color: var(--danger, #EF4444); }
+  &.important { background: rgba(245, 158, 11, 0.15); color: var(--warning, #F59E0B); }
+  &.suggested { background: rgba(96, 165, 250, 0.15); color: var(--primary, #60a5fa); }
+}
+
+.rec-detail-category {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-caption, #64748b);
+  padding: 2px 6px;
+  background: var(--surface, rgba(255, 255, 255, 0.03));
+  border-radius: 3px;
+}
+
+.rec-detail-project {
+  font-size: 11px;
+  color: var(--primary, #60a5fa);
+  font-weight: 500;
+}
+
+.rec-detail-desc {
+  font-size: 13px;
+  color: var(--text-body, #cbd5e1);
+  line-height: 1.6;
+}
+
+.rec-detail-impact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(34, 197, 94, 0.12);
+  color: var(--success, #22C55E);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+// ===== Target Banner =====
+.target-banner {
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--card-bg, #161B22);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: targetSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes targetSlideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// ===== Presentation Mode Button =====
+.present-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  background: var(--card-bg, #161B22);
+  color: var(--text-caption, #64748b);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s;
+
+  &:hover {
+    background: var(--surface-hover, rgba(255, 255, 255, 0.06));
+    border-color: rgba(96, 165, 250, 0.2);
+    color: var(--primary, #60a5fa);
+    box-shadow: 0 0 8px rgba(96, 165, 250, 0.15);
+  }
+
+  &.active {
+    background: var(--primary-light, rgba(96, 165, 250, 0.15));
+    border-color: rgba(96, 165, 250, 0.3);
+    color: var(--primary, #60a5fa);
+    box-shadow: 0 0 12px rgba(96, 165, 250, 0.2);
+  }
+}
+
+// ===== Presentation Mode Overlay =====
+.present-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: transparent;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.present-top-bar {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  background: rgba(15, 18, 23, 0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(96, 165, 250, 0.15);
+  pointer-events: auto;
+  gap: 20px;
+}
+
+.present-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.present-sub {
+  font-size: 12px;
+  color: var(--text-caption, #64748b);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.present-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.present-page-indicator {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary, #60a5fa);
+}
+
+.present-page-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-title, #e2e8f0);
+}
+
+.present-clock {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text-caption, #64748b);
+}
+
+.present-exit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--danger, #EF4444);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+  pointer-events: auto;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: var(--danger, #EF4444);
+  }
+}
+
+.present-progress-bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  pointer-events: auto;
+}
+
+.present-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary, #60a5fa), var(--success, #22C55E));
+  transition: width 0.1s linear;
+  border-radius: 0 2px 2px 0;
+}
+
+.present-hint {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  background: rgba(15, 18, 23, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  color: var(--text-caption, #64748b);
+  font-size: 11px;
+  pointer-events: auto;
+  animation: hintFade 3s ease-in-out infinite;
+
+  svg { color: var(--text-caption, #64748b); opacity: 0.6; }
+}
+
+@keyframes hintFade {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.3; }
+}
+
+.present-enter-active { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.present-leave-active { transition: all 0.3s ease; }
+.present-enter-from { opacity: 0; }
+.present-leave-to { opacity: 0; }
 
 // ===== Drill-down Layout =====
 .drill-layout { height: 100%; overflow: hidden; }

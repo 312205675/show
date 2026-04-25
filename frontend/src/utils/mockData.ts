@@ -208,3 +208,89 @@ export function generateWeeklyTrend() {
   }
   return { dates, dealCount }
 }
+
+// ========== 年度目标追踪 ==========
+
+export interface TargetItem {
+  label: string
+  target: number
+  actual: number
+  unit: string
+  progress: number
+  gap: number
+  status: 'on-track' | 'at-risk' | 'behind'
+  yoy: number
+  mom: number
+}
+
+export function generateTargets(): TargetItem[] {
+  const items = [
+    { label: '年度销售额', target: 120, actual: fluctuate(86.5, 12, 1), unit: '亿', yoy: fluctuate(12, 5, 1), mom: fluctuate(5, 8, 1) },
+    { label: '年度回款额', target: 95, actual: fluctuate(62.8, 10, 1), unit: '亿', yoy: fluctuate(8, 6, 1), mom: fluctuate(3, 5, 1) },
+    { label: '去化率目标', target: 85, actual: fluctuate(68, 8, 1), unit: '%', yoy: fluctuate(5, 4, 1), mom: fluctuate(2, 3, 1) },
+    { label: '新增成交', target: 5000, actual: fluctuate(3800, 400), unit: '套', yoy: fluctuate(15, 8, 1), mom: fluctuate(6, 5, 1) },
+    { label: '客户到访', target: 20000, actual: fluctuate(14500, 1500), unit: '组', yoy: fluctuate(10, 6, 1), mom: fluctuate(4, 4, 1) },
+  ]
+  return items.map(item => {
+    const progress = Number((item.actual / item.target * 100).toFixed(1))
+    const gap = Number((item.actual - item.target * 0.75).toFixed(1))
+    const status: TargetItem['status'] = progress >= 80 ? 'on-track' : progress >= 65 ? 'at-risk' : 'behind'
+    return { ...item, progress, gap, status }
+  })
+}
+
+// ========== 智能决策建议 ==========
+
+export interface RecommendationItem {
+  id: number
+  priority: 'urgent' | 'important' | 'suggested'
+  category: '去化' | '回款' | '库存' | '渠道' | '定价'
+  title: string
+  description: string
+  impact: string
+  project?: string
+}
+
+export function generateRecommendations(): RecommendationItem[] {
+  const allRecommendations: RecommendationItem[] = [
+    { id: 1, priority: 'urgent', category: '去化', title: '加速滞销项目去化', description: '翡翠城、熙湖连续3月去化率低于30%，建议启动限时优惠+渠道加推', impact: '预计提升去化率8-12个百分点', project: '城发投·翡翠城' },
+    { id: 2, priority: 'urgent', category: '回款', title: '专项督办回款异常项目', description: '天颂、云和赋回款率低于目标20个百分点，需催办按揭+启动逾期催收', impact: '预计回收资金1.2-1.8亿', project: '城发投·天颂' },
+    { id: 3, priority: 'important', category: '库存', title: '正定新区库存减压', description: '御河上院+正定新区合计库存超500套，建议特价房+公积金合作方案', impact: '预计减少库存120-180套', project: '城发投·御河上院' },
+    { id: 4, priority: 'important', category: '定价', title: '栾城板块价格策略调整', description: '栾城壹号院均价9800元/㎡，区域竞品降价5-8%，建议跟进调整或增加附加值', impact: '预计提升来访量30%', project: '城发投·栾城壹号院' },
+    { id: 5, priority: 'suggested', category: '渠道', title: '优化渠道佣金结构', description: '当前渠道成交占比42%但佣金成本偏高，建议调整分级佣金+自渠建设', impact: '预计降低获客成本15-20%' },
+    { id: 6, priority: 'suggested', category: '去化', title: '热点项目加推节奏优化', description: '荣盛华府、中央云锦去化率超85%，建议加快后续批次推盘节奏', impact: '预计提前1-2月完成年度目标', project: '城发投·荣盛华府' },
+  ]
+  const count = rand(4, 6)
+  const shuffled = allRecommendations.sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, count)
+}
+
+// ========== 风险雷达维度 ==========
+
+export interface RiskRadarData {
+  dimensions: { name: string; max: number }[]
+  current: number[]
+  benchmark: number[]
+}
+
+export function generateRiskRadar(): RiskRadarData {
+  return {
+    dimensions: [
+      { name: '资金风险', max: 100 },
+      { name: '去化压力', max: 100 },
+      { name: '回款风险', max: 100 },
+      { name: '库存积压', max: 100 },
+      { name: '市场竞争', max: 100 },
+      { name: '政策影响', max: 100 },
+    ],
+    current: [
+      rand(30, 75),
+      rand(40, 80),
+      rand(25, 70),
+      rand(35, 85),
+      rand(45, 75),
+      rand(20, 60),
+    ],
+    benchmark: [50, 55, 45, 50, 50, 40],
+  }
+}
