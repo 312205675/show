@@ -117,68 +117,106 @@
               </div>
             </section>
 
-            <!-- ===== Floating Alerts ===== -->
-            <FloatingAlerts :risks="store.riskDiagnosis" />
+            <!-- ===== Floating Risk Diagnosis Banner ===== -->
+            <div class="floating-risk" :class="{ expanded: riskExpanded }" @click="riskExpanded = !riskExpanded">
+              <div class="fr-header">
+                <svg class="fr-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span class="fr-title">问题诊断</span>
+                <span class="fr-badge" :class="store.riskDiagnosis.some(r => r.severity === 'danger') ? 'danger' : 'warn'">{{ store.riskDiagnosis.length }}</span>
+                <svg class="fr-expand" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              </div>
+              <div v-if="riskExpanded" class="fr-body">
+                <div v-for="(item, idx) in store.riskDiagnosis" :key="idx" class="fr-item" :class="`severity-${item.severity}`" @click.stop="openRiskDetail(item)">
+                  <span v-if="item.severity === 'danger'" class="fr-pulse danger" />
+                  <span v-else class="fr-dot warn" />
+                  <div class="fr-item-body">
+                    <span class="fr-item-project">{{ item.projectName }}</span>
+                    <span class="fr-item-desc">{{ item.description }}</span>
+                  </div>
+                </div>
+                <div v-if="store.riskDiagnosis.length === 0" class="fr-empty">所有项目运行正常</div>
+              </div>
+            </div>
 
             <!-- ===== MAIN BODY (Enhanced 3-column + bottom) ===== -->
             <div class="exec-body">
-              <!-- ===== LEFT COLUMN: Trend + Pie + Map ===== -->
+              <!-- ===== LEFT COLUMN: 3D Stacked Panels ===== -->
               <div class="exec-left">
-                <div class="panel-card" :class="{ 'is-fullscreen': fsKey === 'trends' }">
-                  <div class="panel-toolbar">
-                    <span class="panel-title"><span class="pt-bar" />成交与回款趋势</span>
-                    <button class="fs-btn" @click="toggleFs('trends')" :title="fsKey === 'trends' ? '退出全屏' : '全屏'">
-                      <svg v-if="fsKey !== 'trends'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
-                      <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6m0 0v6m0-6H4m6 0L4 20M20 10h-6m0 0V4m0 6h6m-6 0L20 4"/></svg>
+                <div class="left-stack-container">
+                  <!-- Stack tab bar -->
+                  <div class="stack-tabs">
+                    <button class="stack-tab" :class="{ active: leftActiveTab === 'trends' }" @click="leftActiveTab = 'trends'">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                      趋势
+                    </button>
+                    <button class="stack-tab" :class="{ active: leftActiveTab === 'pie' }" @click="leftActiveTab = 'pie'">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                      分布
+                    </button>
+                    <button class="stack-tab" :class="{ active: leftActiveTab === 'areamap' }" @click="leftActiveTab = 'areamap'">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                      区域
                     </button>
                   </div>
-                  <div class="panel-body">
-                    <CombinedTrendChart
-                      :deal-dates="store.dealTrend.dates"
-                      :deal-count="store.dealTrend.dealCount"
-                      :deal-sales-amount="store.dealTrend.salesAmount"
-                      :return-dates="store.returnTrend.dates"
-                      :return-amount="store.returnTrend.returnAmount"
-                      :return-rate="store.returnTrend.returnRate"
-                    />
-                  </div>
-                </div>
+                  <!-- Stacked cards -->
+                  <div class="stack-cards">
+                    <div class="panel-card stack-card" :class="{ 'stack-active': leftActiveTab === 'trends', 'stack-behind-1': leftActiveTab !== 'trends', 'is-fullscreen': fsKey === 'trends' }">
+                      <div class="panel-toolbar">
+                        <span class="panel-title"><span class="pt-bar" />成交与回款趋势</span>
+                        <button class="fs-btn" @click="toggleFs('trends')" :title="fsKey === 'trends' ? '退出全屏' : '全屏'">
+                          <svg v-if="fsKey !== 'trends'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                          <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6m0 0v6m0-6H4m6 0L4 20M20 10h-6m0 0V4m0 6h6m-6 0L20 4"/></svg>
+                        </button>
+                      </div>
+                      <div class="panel-body">
+                        <CombinedTrendChart
+                          :deal-dates="store.dealTrend.dates"
+                          :deal-count="store.dealTrend.dealCount"
+                          :deal-sales-amount="store.dealTrend.salesAmount"
+                          :return-dates="store.returnTrend.dates"
+                          :return-amount="store.returnTrend.returnAmount"
+                          :return-rate="store.returnTrend.returnRate"
+                        />
+                      </div>
+                    </div>
 
-                <div class="panel-card" :class="{ 'is-fullscreen': fsKey === 'pie' }">
-                  <div class="panel-toolbar">
-                    <span class="panel-title"><span class="pt-bar" />项目状态分布</span>
-                    <button class="fs-btn" @click="toggleFs('pie')" :title="fsKey === 'pie' ? '退出全屏' : '全屏'">
-                      <svg v-if="fsKey !== 'pie'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
-                      <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6m0 0v6m0-6H4m6 0L4 20M20 10h-6m0 0V4m0 6h6m-6 0L20 4"/></svg>
-                    </button>
-                  </div>
-                  <div class="panel-body">
-                    <PieDistribution :data="statusPieData" />
-                  </div>
-                </div>
+                    <div class="panel-card stack-card" :class="{ 'stack-active': leftActiveTab === 'pie', 'stack-behind-1': leftActiveTab !== 'pie', 'is-fullscreen': fsKey === 'pie' }">
+                      <div class="panel-toolbar">
+                        <span class="panel-title"><span class="pt-bar" />项目状态分布</span>
+                        <button class="fs-btn" @click="toggleFs('pie')" :title="fsKey === 'pie' ? '退出全屏' : '全屏'">
+                          <svg v-if="fsKey !== 'pie'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                          <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6m0 0v6m0-6H4m6 0L4 20M20 10h-6m0 0V4m0 6h6m-6 0L20 4"/></svg>
+                        </button>
+                      </div>
+                      <div class="panel-body">
+                        <PieDistribution :data="statusPieData" />
+                      </div>
+                    </div>
 
-                <div class="panel-card" :class="{ 'is-fullscreen': fsKey === 'areamap' }">
-                  <div class="panel-toolbar">
-                    <span class="panel-title"><span class="pt-bar" />楼盘区域布局</span>
-                    <button class="fs-btn" @click="toggleFs('areamap')" :title="fsKey === 'areamap' ? '退出全屏' : '全屏'">
-                      <svg v-if="fsKey !== 'areamap'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
-                      <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6m0 0v6m0-6H4m6 0L4 20M20 10h-6m0 0V4m0 6h6m-6 0L20 4"/></svg>
-                    </button>
-                  </div>
-                  <div class="panel-body area-map-body">
-                    <div class="area-map-grid">
-                      <div v-for="area in areaMapData" :key="area.name" class="area-cell" :class="area.level">
-                        <div class="area-name">{{ area.name }}</div>
-                        <div class="area-count">{{ area.count }}盘</div>
-                        <div class="area-sales">{{ area.sales }}亿</div>
-                        <div class="area-dot" />
+                    <div class="panel-card stack-card" :class="{ 'stack-active': leftActiveTab === 'areamap', 'stack-behind-1': leftActiveTab !== 'areamap', 'is-fullscreen': fsKey === 'areamap' }">
+                      <div class="panel-toolbar">
+                        <span class="panel-title"><span class="pt-bar" />楼盘区域布局</span>
+                        <button class="fs-btn" @click="toggleFs('areamap')" :title="fsKey === 'areamap' ? '退出全屏' : '全屏'">
+                          <svg v-if="fsKey !== 'areamap'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                          <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6m0 0v6m0-6H4m6 0L4 20M20 10h-6m0 0V4m0 6h6m-6 0L20 4"/></svg>
+                        </button>
+                      </div>
+                      <div class="panel-body area-map-body">
+                        <div class="area-map-grid">
+                          <div v-for="area in areaMapData" :key="area.name" class="area-cell" :class="area.level">
+                            <div class="area-name">{{ area.name }}</div>
+                            <div class="area-count">{{ area.count }}盘</div>
+                            <div class="area-sales">{{ area.sales }}亿</div>
+                            <div class="area-dot" />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- ===== CENTER COLUMN: Project Health ===== -->
+              <!-- ===== CENTER COLUMN: Project Health + Prediction ===== -->
               <div class="exec-center">
                 <div class="panel-card projects-panel" :class="{ 'is-fullscreen': fsKey === 'projects' }">
                   <div class="panel-toolbar">
@@ -251,8 +289,30 @@
                 </div>
               </div>
 
-              <!-- ===== RIGHT COLUMN: Bar + Gauge + Risk ===== -->
+              <!-- ===== RIGHT COLUMN: Hot Properties + Bar + Gauge + Prediction ===== -->
               <div class="exec-right">
+                <!-- Hot Properties with Views -->
+                <div class="panel-card hot-props-card">
+                  <div class="panel-toolbar">
+                    <span class="panel-title"><span class="pt-bar" />热门楼盘<span class="ph-count">浏览量排行</span></span>
+                    <span class="hot-fire">🔥</span>
+                  </div>
+                  <div class="panel-body hot-body">
+                    <div v-for="(h, i) in store.hotProperties.slice(0, 5)" :key="h.name" class="hot-row">
+                      <span class="hot-rank" :class="{ top: i < 3 }">{{ i + 1 }}</span>
+                      <div class="hot-info">
+                        <span class="hot-name">{{ h.name.replace('城发投·', '') }}</span>
+                        <span class="hot-tag" :style="{ background: h.tagColor + '20', color: h.tagColor }">{{ h.tag }}</span>
+                      </div>
+                      <div class="hot-views">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        {{ (h.views / 1000).toFixed(1) }}k
+                      </div>
+                      <span class="hot-growth" :class="h.viewGrowth >= 0 ? 'up' : 'down'">{{ h.viewGrowth >= 0 ? '+' : '' }}{{ h.viewGrowth }}%</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="panel-card" :class="{ 'is-fullscreen': fsKey === 'bar' }">
                   <div class="panel-toolbar">
                     <span class="panel-title"><span class="pt-bar" />项目销售对比</span>
@@ -286,16 +346,33 @@
                   </div>
                 </div>
 
-                <div class="panel-card risk-panel" :class="{ 'is-fullscreen': fsKey === 'risk' }">
+                <!-- Prediction Module -->
+                <div class="panel-card prediction-card">
                   <div class="panel-toolbar">
-                    <span class="panel-title"><span class="pt-bar" />问题诊断</span>
-                    <button class="fs-btn" @click="toggleFs('risk')" :title="fsKey === 'risk' ? '退出全屏' : '全屏'">
-                      <svg v-if="fsKey !== 'risk'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
-                      <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6m0 0v6m0-6H4m6 0L4 20M20 10h-6m0 0V4m0 6h6m-6 0L20 4"/></svg>
-                    </button>
+                    <span class="panel-title"><span class="pt-bar" />AI 预测<span class="ph-count">智能研判</span></span>
+                    <span class="pred-icon">✦</span>
                   </div>
-                  <div class="panel-body">
-                    <RiskDiagnosis :risks="store.riskDiagnosis" @select="openRiskDetail" />
+                  <div class="panel-body pred-body">
+                    <div v-for="p in store.predictions.slice(0, 4)" :key="p.indicator" class="pred-row">
+                      <div class="pred-head">
+                        <span class="pred-name">{{ p.indicator }}</span>
+                        <span class="pred-trend" :class="p.trend">
+                          <svg v-if="p.trend === 'up'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                          <svg v-else-if="p.trend === 'down'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
+                          <svg v-else width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </span>
+                      </div>
+                      <div class="pred-values">
+                        <span class="pred-current">{{ p.current }}{{ p.unit }}</span>
+                        <svg class="pred-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        <span class="pred-predicted" :class="p.trend">{{ p.predicted }}{{ p.unit }}</span>
+                        <span class="pred-change" :class="p.change >= 0 ? 'up' : 'down'">{{ p.change >= 0 ? '+' : '' }}{{ p.change }}%</span>
+                      </div>
+                      <div class="pred-confidence">
+                        <div class="pred-conf-bar"><div class="pred-conf-fill" :style="{ width: p.confidence + '%' }" /></div>
+                        <span class="pred-conf-text">置信度 {{ p.confidence }}%</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -304,36 +381,7 @@
 
           <!-- 3D Mode -->
           <div v-else class="exec-3d-layout">
-            <div class="main-3d-panel">
-              <div class="panel-3d-split">
-                <div class="split-left">
-                  <BossKPI v-bind="store.coreKPI" />
-                </div>
-                <div class="split-right">
-                  <Globe3D :markers="globeMarkers" />
-                  <!-- Core indicators overlay on globe -->
-                  <div class="globe-overlay">
-                    <div class="overlay-kpi" :class="depletionClass">
-                      <span class="ov-label">去化率</span>
-                      <span class="ov-value" :style="{ color: depletionColor }">{{ store.coreKPI.depletionRate.toFixed(1) }}<small>%</small></span>
-                    </div>
-                    <div class="overlay-kpi primary-kpi">
-                      <span class="ov-label">销售额</span>
-                      <span class="ov-value" style="color: var(--primary, #60a5fa)">{{ store.coreKPI.totalSales.toFixed(1) }}<small>亿</small></span>
-                    </div>
-                    <div class="overlay-kpi" :class="returnClass">
-                      <span class="ov-label">回款率</span>
-                      <span class="ov-value" :style="{ color: returnColor }">{{ store.coreKPI.returnRate.toFixed(1) }}<small>%</small></span>
-                    </div>
-                    <div class="overlay-kpi" :class="inventoryClass">
-                      <span class="ov-label">库存</span>
-                      <span class="ov-value" :style="{ color: inventoryColor }">{{ store.coreKPI.inventoryUnits }}<small>套</small></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="side-3d-panel">
+            <div class="side-3d-panel left-3d">
               <div class="trend-3d-panel">
                 <CombinedTrendChart
                   :deal-dates="store.dealTrend.dates"
@@ -344,8 +392,57 @@
                   :return-rate="store.returnTrend.returnRate"
                 />
               </div>
+              <BossKPI v-bind="store.coreKPI" />
+            </div>
+            <div class="main-3d-panel">
+              <div class="panel-toolbar map-3d-toolbar">
+                <span class="panel-title"><span class="pt-bar" />石家庄楼盘3D地图</span>
+                <div class="map-3d-legend">
+                  <span class="ml3-item"><span class="ml3-dot healthy" />健康</span>
+                  <span class="ml3-item"><span class="ml3-dot warning" />关注</span>
+                  <span class="ml3-item"><span class="ml3-dot danger" />预警</span>
+                </div>
+              </div>
+              <ChinaMap :show-property-detail="true" />
+              <!-- KPI overlay -->
+              <div class="globe-overlay">
+                <div class="overlay-kpi" :class="depletionClass">
+                  <span class="ov-label">去化率</span>
+                  <span class="ov-value" :style="{ color: depletionColor }">{{ store.coreKPI.depletionRate.toFixed(1) }}<small>%</small></span>
+                </div>
+                <div class="overlay-kpi primary-kpi">
+                  <span class="ov-label">销售额</span>
+                  <span class="ov-value" style="color: var(--primary, #60a5fa)">{{ store.coreKPI.totalSales.toFixed(1) }}<small>亿</small></span>
+                </div>
+                <div class="overlay-kpi" :class="returnClass">
+                  <span class="ov-label">回款率</span>
+                  <span class="ov-value" :style="{ color: returnColor }">{{ store.coreKPI.returnRate.toFixed(1) }}<small>%</small></span>
+                </div>
+                <div class="overlay-kpi" :class="inventoryClass">
+                  <span class="ov-label">库存</span>
+                  <span class="ov-value" :style="{ color: inventoryColor }">{{ store.coreKPI.inventoryUnits }}<small>套</small></span>
+                </div>
+              </div>
+            </div>
+            <div class="side-3d-panel right-3d">
               <div class="risk-3d-panel">
                 <RiskDiagnosis :risks="store.riskDiagnosis" @select="openRiskDetail" />
+              </div>
+              <div class="pred-3d-panel">
+                <div class="panel-toolbar"><span class="panel-title"><span class="pt-bar" />AI 预测</span><span class="pred-icon">✦</span></div>
+                <div class="pred-3d-body">
+                  <div v-for="p in store.predictions.slice(0, 3)" :key="p.indicator" class="pred-3d-row">
+                    <div class="pred-3d-head">
+                      <span class="pred-3d-name">{{ p.indicator }}</span>
+                      <span class="pred-3d-change" :class="p.change >= 0 ? 'up' : 'down'">{{ p.change >= 0 ? '+' : '' }}{{ p.change }}%</span>
+                    </div>
+                    <div class="pred-3d-vals">
+                      <span class="pred-3d-cur">{{ p.current }}{{ p.unit }}</span>
+                      <span class="pred-3d-arrow">→</span>
+                      <span class="pred-3d-pred" :class="p.trend">{{ p.predicted }}{{ p.unit }}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -406,13 +503,13 @@ import PieDistribution from '@/components/charts/PieDistribution.vue'
 import BarComparison from '@/components/charts/BarComparison.vue'
 import GaugeChart from '@/components/charts/GaugeChart.vue'
 import Globe3D from '@/components/charts/Globe3D.vue'
+import ChinaMap from '@/components/charts/ChinaMap.vue'
 import DigitalFlipper from '@/components/common/DigitalFlipper.vue'
 import ThemeSwitcher from '@/components/common/ThemeSwitcher.vue'
 import ModeToggle from '@/components/common/ModeToggle.vue'
 import FontSizer from '@/components/common/FontSizer.vue'
 import PageNav from '@/components/common/PageNav.vue'
 import DetailModal from '@/components/common/DetailModal.vue'
-import FloatingAlerts from '@/components/common/FloatingAlerts.vue'
 import NotificationCenter from '@/components/common/NotificationCenter.vue'
 import AIAssistant from '@/components/common/AIAssistant.vue'
 
@@ -438,12 +535,12 @@ interface PageDef {
 
 const pages = ref<PageDef[]>([
   { key: 'dashboard', label: '总览', icon: '◉' },
+  { key: 'region', label: '区域对比', icon: '◇', component: RegionPage },
+  { key: 'inventory', label: '库存排名', icon: '◻', component: InventoryPage },
+  { key: 'channel', label: '项目分析', icon: '⬡', component: ChannelPage },
   { key: 'project', label: '项目深度', icon: '◈', component: ProjectDeepPage },
-  { key: 'channel', label: '渠道分析', icon: '⬡', component: ChannelPage },
   { key: 'customer', label: '客户画像', icon: '◎', component: CustomerPage },
   { key: 'funnel', label: '销售漏斗', icon: '▽', component: FunnelPage },
-  { key: 'inventory', label: '库存定价', icon: '◻', component: InventoryPage },
-  { key: 'region', label: '区域对比', icon: '◇', component: RegionPage },
 ])
 
 const drillPages = computed(() => pages.value.slice(1))
@@ -458,6 +555,8 @@ const showSwipeHint = ref(true)
 
 // Fullscreen state
 const fsKey = ref<string | null>(null)
+const riskExpanded = ref(false)
+const leftActiveTab = ref<'trends' | 'pie' | 'areamap'>('trends')
 
 function toggleFs(key: string) {
   fsKey.value = fsKey.value === key ? null : key
@@ -933,7 +1032,7 @@ onUnmounted(() => {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  min-height: 0;
 }
 
 .exec-center {
@@ -1009,6 +1108,72 @@ onUnmounted(() => {
 .exec-left .panel-card { flex: 1; min-height: 0; }
 .exec-center .panel-card { height: 100%; }
 .exec-right .panel-card { flex: 1; min-height: 0; }
+
+// ===== 3D Stacked Left Panels =====
+.left-stack-container { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+.stack-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 8px 8px 0 0;
+  background: var(--card-bg, #161B22);
+  border: 1px solid var(--border, rgba(255,255,255,0.06));
+  border-bottom: none;
+}
+
+.stack-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-caption, #64748b);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+
+  &:hover { color: var(--text-body, #cbd5e1); background: rgba(255,255,255,0.04); }
+
+  &.active {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--primary, #60a5fa);
+    box-shadow: 0 0 8px rgba(99,102,241,0.1);
+  }
+}
+
+.stack-cards {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  perspective: 1200px;
+}
+
+.stack-card {
+  position: absolute;
+  inset: 0;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center center;
+  backface-visibility: hidden;
+  border-radius: 0 0 10px 10px;
+
+  &.stack-active {
+    opacity: 1;
+    transform: translateZ(0) rotateY(0deg) scale(1);
+    z-index: 3;
+    pointer-events: auto;
+  }
+
+  &.stack-behind-1 {
+    opacity: 0;
+    transform: translateZ(-60px) rotateY(8deg) scale(0.92) translateX(12px);
+    z-index: 1;
+    pointer-events: none;
+  }
+}
 
 .panel-toolbar {
   display: flex;
@@ -1237,6 +1402,111 @@ onUnmounted(() => {
   height: 100%;
 }
 
+// ===== Floating Risk Diagnosis =====
+.floating-risk {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  border-radius: 10px;
+  background: var(--card-bg, #161B22);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: riskFloat 6s ease-in-out infinite;
+  max-width: 320px;
+
+  &:hover {
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.5), 0 0 16px rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+
+  &.expanded {
+    max-width: 400px;
+    animation: none;
+  }
+}
+
+@keyframes riskFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  25% { transform: translateX(-48%) translateY(-4px); }
+  50% { transform: translateX(-52%) translateY(2px); }
+  75% { transform: translateX(-50%) translateY(-2px); }
+}
+
+.fr-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+}
+
+.fr-icon { color: var(--danger, #EF4444); animation: riskPulse 2s ease-in-out infinite; }
+@keyframes riskPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.fr-title { font-size: 12px; font-weight: 600; color: var(--text-title, #e2e8f0); flex: 1; }
+
+.fr-badge {
+  font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 8px; font-family: 'JetBrains Mono', monospace;
+  &.danger { background: var(--danger-light, rgba(239,68,68,0.15)); color: var(--danger, #EF4444); }
+  &.warn { background: var(--warning-light, rgba(245,158,11,0.15)); color: var(--warning, #F59E0B); }
+}
+
+.fr-expand {
+  color: var(--text-caption, #64748b);
+  transition: transform 0.3s;
+  .expanded & { transform: rotate(180deg); }
+}
+
+.fr-body {
+  padding: 0 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  animation: riskBodyIn 0.3s ease;
+}
+
+@keyframes riskBodyIn {
+  from { opacity: 0; max-height: 0; }
+  to { opacity: 1; max-height: 200px; }
+}
+
+.fr-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+
+  &.severity-danger { background: var(--danger-light, rgba(239,68,68,0.1)); }
+  &.severity-warn { background: var(--warning-light, rgba(245,158,11,0.1)); }
+
+  &:hover { transform: translateX(2px); }
+}
+
+.fr-pulse {
+  display: block; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+  &.danger { background: var(--danger, #EF4444); box-shadow: 0 0 6px var(--danger-light, rgba(239,68,68,0.3)); animation: pulseDanger 2s ease-in-out infinite; }
+}
+@keyframes pulseDanger { 0%, 100% { box-shadow: 0 0 4px rgba(239,68,68,0.2); } 50% { box-shadow: 0 0 10px rgba(239,68,68,0.5); } }
+
+.fr-dot {
+  display: block; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+  &.warn { background: var(--warning, #F59E0B); }
+}
+
+.fr-item-body { flex: 1; min-width: 0; }
+.fr-item-project { font-size: 11px; font-weight: 600; color: var(--text-title, #e2e8f0); display: block; }
+.fr-item-desc { font-size: 10px; color: var(--text-caption, #64748b); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.fr-empty { font-size: 11px; color: var(--success, #22C55E); text-align: center; padding: 8px; }
+
 // ===== 3D Mode Layout =====
 .exec-3d-layout {
   display: flex;
@@ -1252,11 +1522,26 @@ onUnmounted(() => {
   overflow: hidden;
   border: 1px solid var(--border);
   background: var(--card-bg);
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-.panel-3d-split { display: flex; height: 100%; }
-.split-left { width: 38%; border-right: 1px solid var(--border); overflow-y: auto; }
-.split-right { flex: 1; min-width: 0; position: relative; }
+.map-3d-toolbar { flex-shrink: 0; }
+
+.map-3d-legend {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.ml3-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-caption, #64748b); }
+.ml3-dot { width: 6px; height: 6px; border-radius: 50%;
+  &.healthy { background: var(--success, #22C55E); box-shadow: 0 0 4px rgba(34,197,94,0.3); }
+  &.warning { background: var(--warning, #F59E0B); box-shadow: 0 0 4px rgba(245,158,11,0.3); }
+  &.danger { background: var(--danger, #EF4444); box-shadow: 0 0 4px rgba(239,68,68,0.3); }
+}
 
 // ===== Globe Overlay (Core Indicators on 3D) =====
 .globe-overlay {
@@ -1320,7 +1605,7 @@ onUnmounted(() => {
 }
 
 .side-3d-panel {
-  width: 280px;
+  width: 260px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -1329,6 +1614,51 @@ onUnmounted(() => {
 
 .trend-3d-panel { flex: 1; min-height: 0; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); overflow: hidden; }
 .risk-3d-panel { height: 200px; min-height: 140px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); overflow: auto; }
+
+.pred-3d-panel { border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); flex-shrink: 0; max-height: 160px; overflow-y: auto; }
+.pred-3d-body { padding: 6px 10px; display: flex; flex-direction: column; gap: 6px; }
+.pred-3d-row { display: flex; flex-direction: column; gap: 2px; }
+.pred-3d-head { display: flex; justify-content: space-between; align-items: center; }
+.pred-3d-name { font-size: 10px; font-weight: 600; color: var(--text-title, #e2e8f0); }
+.pred-3d-change { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } }
+.pred-3d-vals { display: flex; align-items: center; gap: 4px; font-size: 10px; }
+.pred-3d-cur { color: var(--text-caption, #64748b); }
+.pred-3d-arrow { color: var(--text-caption, #64748b); }
+.pred-3d-pred { font-weight: 700; color: var(--text-body, #cbd5e1); &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } &.stable { color: var(--text-caption, #64748b); } }
+
+// ===== Hot Properties =====
+.hot-props-card { flex-shrink: 0; max-height: 210px; }
+.hot-fire { font-size: 12px; }
+.hot-body { padding: 4px 10px 8px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.hot-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; transition: all 0.2s; &:hover { background: var(--surface, rgba(255,255,255,0.03)); border-radius: 4px; } }
+.hot-rank { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; width: 18px; text-align: center; color: var(--text-caption, #64748b); &.top { color: var(--warning, #F59E0B); text-shadow: 0 0 6px rgba(245,158,11,0.3); } }
+.hot-info { flex: 1; display: flex; align-items: center; gap: 5px; min-width: 0; }
+.hot-name { font-size: 11px; font-weight: 600; color: var(--text-title, #e2e8f0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hot-tag { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
+.hot-views { display: flex; align-items: center; gap: 3px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--text-body, #cbd5e1); }
+.hot-growth { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } }
+
+// ===== Prediction Module =====
+.prediction-card { flex-shrink: 0; max-height: 260px; }
+.pred-icon { font-size: 12px; color: var(--primary, #60a5fa); animation: predGlow 2s ease-in-out infinite; }
+@keyframes predGlow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.pred-body { padding: 4px 10px 8px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+.pred-row { display: flex; flex-direction: column; gap: 3px; }
+.pred-head { display: flex; justify-content: space-between; align-items: center; }
+.pred-name { font-size: 11px; font-weight: 600; color: var(--text-title, #e2e8f0); }
+.pred-trend { display: flex; align-items: center; &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } &.stable { color: var(--text-caption, #64748b); } }
+
+.pred-values { display: flex; align-items: center; gap: 4px; }
+.pred-current { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-caption, #64748b); font-weight: 500; }
+.pred-arrow { color: var(--text-caption, #64748b); flex-shrink: 0; }
+.pred-predicted { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--text-body, #cbd5e1); &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } &.stable { color: var(--text-caption, #64748b); } }
+.pred-change { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; padding: 1px 4px; border-radius: 3px; &.up { background: rgba(34,197,94,0.12); color: var(--success, #22C55E); } &.down { background: rgba(239,68,68,0.12); color: var(--danger, #EF4444); } }
+
+.pred-confidence { display: flex; align-items: center; gap: 6px; }
+.pred-conf-bar { flex: 1; height: 4px; background: var(--bar-track, rgba(255,255,255,0.05)); border-radius: 2px; overflow: hidden; }
+.pred-conf-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--primary, #60a5fa), var(--success, #22C55E)); transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+.pred-conf-text { font-size: 9px; color: var(--text-caption, #64748b); flex-shrink: 0; white-space: nowrap; }
 
 // ===== Drill-down Layout =====
 .drill-layout { height: 100%; overflow: hidden; }
@@ -1396,6 +1726,10 @@ onUnmounted(() => {
 
   .exec-3d-layout { flex-direction: column; }
   .side-3d-panel { width: 100%; max-height: 200px; }
+
+  .stack-cards { min-height: 250px; }
+  .stack-card.stack-behind-1 { transform: none; opacity: 0; }
+  .stack-card.stack-active { position: relative; }
 
   .globe-overlay { grid-template-columns: 1fr 1fr; gap: 4px; }
   .ov-value { font-size: 14px; }

@@ -2,96 +2,138 @@
   <div class="page region-page">
     <!-- 2D Mode -->
     <template v-if="viewMode !== '3d'">
-      <!-- 区域排名 -->
-      <div class="card">
-        <div class="card-title">区域经营排名</div>
-        <div class="region-cards">
-          <div v-for="(r, i) in regions" :key="r.name" class="region-card" :class="`risk-${r.riskLevel}`">
-            <div class="rc-head">
-              <span class="rc-rank" :class="{ top: i < 3 }">{{ i + 1 }}</span>
-              <span class="rc-name">{{ r.name }}</span>
-              <span class="rc-risk" :class="`rl-${r.riskLevel}`">{{ riskLabel(r.riskLevel) }}</span>
-            </div>
-            <div class="rc-body">
-              <div class="rc-stat">
-                <span class="rc-val">{{ r.totalSales.toFixed(1) }}亿</span>
-                <span class="rc-lbl">销售额</span>
-              </div>
-              <div class="rc-stat">
-                <span class="rc-val">{{ r.dealCount }}套</span>
-                <span class="rc-lbl">成交</span>
-              </div>
-              <div class="rc-stat">
-                <span class="rc-val">{{ r.avgPrice }}</span>
-                <span class="rc-lbl">均价</span>
-              </div>
-              <div class="rc-stat">
-                <span class="rc-val" :class="r.depletionRate >= 65 ? 'good' : r.depletionRate >= 50 ? 'warn' : 'bad'">{{ r.depletionRate }}%</span>
-                <span class="rc-lbl">去化率</span>
-              </div>
-              <div class="rc-stat">
-                <span class="rc-val" :class="r.returnRate >= 75 ? 'good' : r.returnRate >= 65 ? 'warn' : 'bad'">{{ r.returnRate }}%</span>
-                <span class="rc-lbl">回款率</span>
-              </div>
-            </div>
-            <div class="rc-pressure">
-              <span class="pressure-label">库存压力</span>
-              <div class="pressure-bar">
-                <div class="pressure-fill" :style="{ width: r.inventoryPressure + '%', background: pressureColor(r.inventoryPressure) }" />
-              </div>
-              <span class="pressure-val">{{ r.inventoryPressure }}</span>
-            </div>
-            <div class="rc-suggestion">{{ r.suggestion }}</div>
-          </div>
-        </div>
+      <!-- View mode toggle -->
+      <div class="view-toggle-bar">
+        <button class="vt-btn" :class="{ active: viewMode2D === 'list' }" @click="viewMode2D = 'list'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          列表
+        </button>
+        <button class="vt-btn" :class="{ active: viewMode2D === 'map' }" @click="viewMode2D = 'map'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          地图
+        </button>
       </div>
 
-      <div class="two-col">
+      <!-- Map Mode -->
+      <template v-if="viewMode2D === 'map'">
+        <div class="map-container card">
+          <div class="map-chart-area">
+            <ChinaMap :points="mapPoints" :regions="mapRegions" />
+          </div>
+          <div class="map-legend">
+            <div class="ml-item"><span class="ml-dot healthy" />健康去化 (≥65%)</div>
+            <div class="ml-item"><span class="ml-dot warning" />需要关注 (50-65%)</div>
+            <div class="ml-item"><span class="ml-dot danger" />高风险 (<50%)</div>
+          </div>
+          <div class="map-summary">
+            <div v-for="r in regions" :key="r.name" class="ms-card" :class="`risk-${r.riskLevel}`">
+              <div class="ms-name">{{ r.name }}</div>
+              <div class="ms-stats">
+                <span class="ms-val good">{{ r.depletionRate }}%</span>
+                <span class="ms-lbl">去化</span>
+              </div>
+              <div class="ms-stats">
+                <span class="ms-val">{{ r.totalSales.toFixed(1) }}亿</span>
+                <span class="ms-lbl">销售</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- List Mode -->
+      <template v-else>
+        <!-- 区域排名 -->
         <div class="card">
-          <div class="card-title">区域销售额对比</div>
-          <div class="bar-compare">
-            <div v-for="r in sortedBySales" :key="r.name" class="bc-row">
-              <span class="bc-name">{{ r.name }}</span>
-              <div class="bc-bar-bg">
-                <div class="bc-bar-fill" :style="{ width: (r.totalSales / maxSales * 100) + '%' }" />
+          <div class="card-title">区域经营排名</div>
+          <div class="region-cards">
+            <div v-for="(r, i) in regions" :key="r.name" class="region-card" :class="`risk-${r.riskLevel}`">
+              <div class="rc-head">
+                <span class="rc-rank" :class="{ top: i < 3 }">{{ i + 1 }}</span>
+                <span class="rc-name">{{ r.name }}</span>
+                <span class="rc-risk" :class="`rl-${r.riskLevel}`">{{ riskLabel(r.riskLevel) }}</span>
               </div>
-              <span class="bc-val">{{ r.totalSales.toFixed(1) }}亿</span>
+              <div class="rc-body">
+                <div class="rc-stat">
+                  <span class="rc-val">{{ r.totalSales.toFixed(1) }}亿</span>
+                  <span class="rc-lbl">销售额</span>
+                </div>
+                <div class="rc-stat">
+                  <span class="rc-val">{{ r.dealCount }}套</span>
+                  <span class="rc-lbl">成交</span>
+                </div>
+                <div class="rc-stat">
+                  <span class="rc-val">{{ r.avgPrice }}</span>
+                  <span class="rc-lbl">均价</span>
+                </div>
+                <div class="rc-stat">
+                  <span class="rc-val" :class="r.depletionRate >= 65 ? 'good' : r.depletionRate >= 50 ? 'warn' : 'bad'">{{ r.depletionRate }}%</span>
+                  <span class="rc-lbl">去化率</span>
+                </div>
+                <div class="rc-stat">
+                  <span class="rc-val" :class="r.returnRate >= 75 ? 'good' : r.returnRate >= 65 ? 'warn' : 'bad'">{{ r.returnRate }}%</span>
+                  <span class="rc-lbl">回款率</span>
+                </div>
+              </div>
+              <div class="rc-pressure">
+                <span class="pressure-label">库存压力</span>
+                <div class="pressure-bar">
+                  <div class="pressure-fill" :style="{ width: r.inventoryPressure + '%', background: pressureColor(r.inventoryPressure) }" />
+                </div>
+                <span class="pressure-val">{{ r.inventoryPressure }}</span>
+              </div>
+              <div class="rc-suggestion">{{ r.suggestion }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title">区域销售额对比</div>
+            <div class="bar-compare">
+              <div v-for="r in sortedBySales" :key="r.name" class="bc-row">
+                <span class="bc-name">{{ r.name }}</span>
+                <div class="bc-bar-bg">
+                  <div class="bc-bar-fill" :style="{ width: (r.totalSales / maxSales * 100) + '%' }" />
+                </div>
+                <span class="bc-val">{{ r.totalSales.toFixed(1) }}亿</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">风险识别与调度建议</div>
+            <div class="risk-list">
+              <div v-for="r in regions.filter(x => x.riskLevel !== 'low')" :key="r.name" class="risk-item" :class="`rl-${r.riskLevel}`">
+                <div class="ri-head">
+                  <span class="ri-name">{{ r.name }}</span>
+                  <span class="ri-level" :class="`rl-${r.riskLevel}`">{{ riskLabel(r.riskLevel) }}</span>
+                </div>
+                <div class="ri-detail">
+                  <div class="ri-row"><span class="ri-lbl">问题</span><span>库存压力{{ r.inventoryPressure }}分，去化率{{ r.depletionRate }}%，回款率{{ r.returnRate }}%</span></div>
+                  <div class="ri-row"><span class="ri-lbl">原因</span><span>{{ r.inventoryPressure > 60 ? '供过于求，区域配套不足' : '市场观望情绪重' }}</span></div>
+                  <div class="ri-row"><span class="ri-lbl">建议</span><span>{{ r.suggestion }}</span></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-title">风险识别与调度建议</div>
-          <div class="risk-list">
-            <div v-for="r in regions.filter(x => x.riskLevel !== 'low')" :key="r.name" class="risk-item" :class="`rl-${r.riskLevel}`">
-              <div class="ri-head">
-                <span class="ri-name">{{ r.name }}</span>
-                <span class="ri-level" :class="`rl-${r.riskLevel}`">{{ riskLabel(r.riskLevel) }}</span>
-              </div>
-              <div class="ri-detail">
-                <div class="ri-row"><span class="ri-lbl">问题</span><span>库存压力{{ r.inventoryPressure }}分，去化率{{ r.depletionRate }}%，回款率{{ r.returnRate }}%</span></div>
-                <div class="ri-row"><span class="ri-lbl">原因</span><span>{{ r.inventoryPressure > 60 ? '供过于求，区域配套不足' : '市场观望情绪重' }}</span></div>
-                <div class="ri-row"><span class="ri-lbl">建议</span><span>{{ r.suggestion }}</span></div>
-              </div>
+          <div class="card-title">资源调度建议</div>
+          <div class="dispatch-table">
+            <div class="dt-header">
+              <span>区域</span><span>当前项目</span><span>建议动作</span><span>优先级</span>
+            </div>
+            <div v-for="d in dispatchPlan" :key="d.region" class="dt-row">
+              <span class="dt-region">{{ d.region }}</span>
+              <span>{{ d.projects }}个</span>
+              <span>{{ d.action }}</span>
+              <span class="dt-priority" :class="d.priority">{{ d.priority }}</span>
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">资源调度建议</div>
-        <div class="dispatch-table">
-          <div class="dt-header">
-            <span>区域</span><span>当前项目</span><span>建议动作</span><span>优先级</span>
-          </div>
-          <div v-for="d in dispatchPlan" :key="d.region" class="dt-row">
-            <span class="dt-region">{{ d.region }}</span>
-            <span>{{ d.projects }}个</span>
-            <span>{{ d.action }}</span>
-            <span class="dt-priority" :class="d.priority">{{ d.priority }}</span>
-          </div>
-        </div>
-      </div>
+      </template>
     </template>
 
     <!-- 3D Mode -->
@@ -138,12 +180,35 @@ import { computed, ref } from 'vue'
 import { generateRegions, type RegionItem } from '@/utils/pageMockData'
 import Bar3DChart from '@/components/charts/Bar3DChart.vue'
 import Scatter3DChart from '@/components/charts/Scatter3DChart.vue'
+import ChinaMap from '@/components/charts/ChinaMap.vue'
 
 withDefaults(defineProps<{ viewMode?: '2d' | '3d' }>(), { viewMode: '2d' })
 
+const viewMode2D = ref<'list' | 'map'>('map')
 const regions = ref<RegionItem[]>(generateRegions())
 const sortedBySales = computed(() => [...regions.value].sort((a, b) => b.totalSales - a.totalSales))
 const maxSales = computed(() => Math.max(...regions.value.map(r => r.totalSales)))
+
+// Map data
+const mapPoints = computed(() => {
+  const coords: Record<string, [number, number]> = {
+    '裕华区': [114.53, 38.02],
+    '长安区': [114.56, 38.05],
+    '桥西区': [114.46, 38.03],
+    '新华区': [114.46, 38.06],
+    '正定新区': [114.57, 38.13],
+    '栾城区': [114.65, 37.90],
+  }
+  return regions.value.map(r => ({
+    name: `石家庄·${r.name}`,
+    value: [...(coords[r.name] || [114.5, 38.0]), r.depletionRate],
+    itemStyle: { color: r.depletionRate >= 65 ? '#22C55E' : r.depletionRate >= 50 ? '#F59E0B' : '#EF4444' },
+  }))
+})
+
+const mapRegions = computed(() => [
+  { name: '河北省', value: 86, level: 'active' },
+])
 
 const dispatchPlan = computed(() => regions.value.map(r => ({
   region: r.name, projects: r.projects,
@@ -163,6 +228,36 @@ const regionScatterData = computed(() => regions.value.map(r => ({ name: r.name,
 .card { padding: 14px; border-radius: 10px; border: 1px solid var(--border, rgba(255,255,255,0.06)); background: var(--card-bg, #161B22); box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: all 0.3s; &:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.3); } }
 .card-title { font-size: 13px; font-weight: 600; color: var(--text-title, #e2e8f0); margin-bottom: 12px; padding-left: 10px; border-left: 3px solid var(--primary, #60a5fa); }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+// View toggle
+.view-toggle-bar { display: flex; gap: 4px; padding: 4px; border-radius: 8px; background: var(--card-bg, #161B22); border: 1px solid var(--border, rgba(255,255,255,0.06)); align-self: flex-start; }
+.vt-btn { display: flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 6px; border: none; background: transparent; color: var(--text-caption, #64748b); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  &:hover { color: var(--text-body, #cbd5e1); background: rgba(255,255,255,0.04); }
+  &.active { background: rgba(99, 102, 241, 0.15); color: var(--primary, #60a5fa); box-shadow: 0 0 8px rgba(99,102,241,0.15); }
+}
+
+// Map mode
+.map-container { flex: 1; display: flex; flex-direction: column; gap: 10px; min-height: 400px; }
+.map-chart-area { flex: 1; min-height: 300px; border-radius: 8px; overflow: hidden; }
+.map-legend { display: flex; gap: 16px; padding: 6px 10px; justify-content: center; }
+.ml-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-caption, #64748b); }
+.ml-dot { width: 8px; height: 8px; border-radius: 50%;
+  &.healthy { background: var(--success, #22C55E); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+  &.warning { background: var(--warning, #F59E0B); box-shadow: 0 0 6px rgba(245,158,11,0.4); }
+  &.danger { background: var(--danger, #EF4444); box-shadow: 0 0 6px rgba(239,68,68,0.4); }
+}
+.map-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ms-card { padding: 10px; border-radius: 8px; border: 1px solid var(--border, rgba(255,255,255,0.06)); background: var(--surface, rgba(255,255,255,0.03)); display: flex; align-items: center; gap: 8px;
+  &.risk-high { border-left: 3px solid var(--danger, #EF4444); }
+  &.risk-medium { border-left: 3px solid var(--warning, #F59E0B); }
+  &.risk-low { border-left: 3px solid var(--success, #22C55E); }
+}
+.ms-name { font-size: 12px; font-weight: 600; color: var(--text-title, #e2e8f0); flex: 1; }
+.ms-stats { display: flex; flex-direction: column; }
+.ms-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--text-body, #cbd5e1);
+  &.good { color: var(--success, #22C55E); }
+}
+.ms-lbl { font-size: 9px; color: var(--text-caption, #64748b); }
 
 .region-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .region-card {

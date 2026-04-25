@@ -184,8 +184,8 @@ onMounted(() => {
   setTimeout(() => {
     showNext()
     timer = setInterval(() => {
-      setTimeout(showNext, fluctuate(5000, 3000))
-    }, 25000)
+      setTimeout(showNext, fluctuate(3000, 2000))
+    }, 60000)
   }, 8000)
 })
 

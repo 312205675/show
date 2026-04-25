@@ -309,6 +309,107 @@ export function generateProjectDeepData(projectName: string): ProjectDeepData {
   }
 }
 
+// ========== 楼盘浏览量 & 热门楼盘 ==========
+
+export interface HotProperty {
+  name: string
+  city: string
+  views: number          // 浏览量
+  viewGrowth: number     // 浏览量环比增长%
+  deals: number          // 成交套数
+  score: number          // 热度评分 0-100
+  tag: string            // 标签
+  tagColor: string
+}
+
+export function generateHotProperties(): HotProperty[] {
+  const tags = [
+    { tag: '销冠', color: '#EF4444' },
+    { tag: '热搜', color: '#F59E0B' },
+    { tag: '新开', color: '#60a5fa' },
+    { tag: '必看', color: '#22C55E' },
+    { tag: '爆款', color: '#a78bfa' },
+  ]
+  return PROJECT_LIST.slice(0, 8).map((p, i) => ({
+    name: p.name,
+    city: p.city,
+    views: fluctuate(12000 - i * 800, 2000),
+    viewGrowth: fluctuate(15 - i * 2, 12, 1),
+    deals: fluctuate(45 - i * 3, 10),
+    score: fluctuate(95 - i * 7, 5, 1),
+    tag: tags[i % tags.length].tag,
+    tagColor: tags[i % tags.length].color,
+  })).sort((a, b) => b.score - a.score)
+}
+
+// ========== 预测模块 ==========
+
+export interface PredictionItem {
+  indicator: string        // 指标名称
+  current: number          // 当前值
+  predicted: number        // 预测值
+  change: number           // 变化%
+  confidence: number       // 置信度 0-100
+  trend: 'up' | 'down' | 'stable'
+  unit: string
+  advice: string
+}
+
+export function generatePredictions(): PredictionItem[] {
+  return [
+    {
+      indicator: '下月销售额',
+      current: fluctuate(12.5, 2, 1),
+      predicted: fluctuate(13.8, 2, 1),
+      change: fluctuate(8.5, 5, 1),
+      confidence: fluctuate(82, 8, 1),
+      trend: 'up',
+      unit: '亿',
+      advice: '市场回暖信号明显，建议加推热门户型',
+    },
+    {
+      indicator: '去化率',
+      current: fluctuate(68, 5, 1),
+      predicted: fluctuate(71, 5, 1),
+      change: fluctuate(3.2, 2, 1),
+      confidence: fluctuate(78, 10, 1),
+      trend: 'up',
+      unit: '%',
+      advice: '去化趋势向好，维持当前营销节奏',
+    },
+    {
+      indicator: '库存去化周期',
+      current: fluctuate(16, 3, 1),
+      predicted: fluctuate(14.5, 3, 1),
+      change: fluctuate(-8, 5, 1),
+      confidence: fluctuate(75, 10, 1),
+      trend: 'down',
+      unit: '月',
+      advice: '库存压力有望缓解，关注正定新区去化',
+    },
+    {
+      indicator: '回款率',
+      current: fluctuate(76, 6, 1),
+      predicted: fluctuate(79, 6, 1),
+      change: fluctuate(4, 3, 1),
+      confidence: fluctuate(70, 12, 1),
+      trend: 'up',
+      unit: '%',
+      advice: '按揭放款提速预期，回款率有望改善',
+    },
+    {
+      indicator: '新增线索量',
+      current: fluctuate(3800, 500),
+      predicted: fluctuate(4200, 500),
+      change: fluctuate(10, 8, 1),
+      confidence: fluctuate(68, 15, 1),
+      trend: 'up',
+      unit: '条',
+      advice: '线上渠道持续发力，线索量稳中有升',
+    },
+  ]
+}
+
 // ========== 通用：月度趋势数据 ==========
 
 export function generateMonthlyTrend(months = 12) {

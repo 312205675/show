@@ -88,7 +88,7 @@ import { fluctuate } from '@/utils/mockData'
 const { playRobotTipSound, playClickSound } = useSound()
 
 // ===== Idle & Minimize =====
-const IDLE_TIMEOUT = 120_000 // 2 minutes
+const IDLE_TIMEOUT = 60_000 // 1 minute
 const isMinimized = ref(false)
 const isMinimizing = ref(false)
 const isWaking = ref(false)
@@ -348,7 +348,7 @@ onUnmounted(() => {
   z-index: 250;
   cursor: grab;
   user-select: none;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:active { cursor: grabbing; }
 
@@ -358,19 +358,27 @@ onUnmounted(() => {
   }
 
   &.minimizing .robot-body {
-    transform: scale(0.3) translateX(40px);
-    opacity: 0;
+    animation: minimizeShrink 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
   &.waking .robot-body {
-    animation: wakeBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: wakeStretch 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 }
 
-@keyframes wakeBounce {
-  0% { transform: scale(0.5) translateX(30px); opacity: 0.5; }
-  60% { transform: scale(1.1) translateX(-5px); opacity: 1; }
-  100% { transform: scale(1) translateX(0); opacity: 1; }
+@keyframes minimizeShrink {
+  0% { transform: scale(1) rotate(0deg); opacity: 1; }
+  30% { transform: scale(1.05) rotate(-3deg); opacity: 1; }
+  60% { transform: scale(0.4) rotate(5deg); opacity: 0.5; }
+  100% { transform: scale(0.1) rotate(0deg) translateX(60px); opacity: 0; }
+}
+
+@keyframes wakeStretch {
+  0% { transform: scale(0.1) rotate(0deg) translateX(40px); opacity: 0; }
+  20% { transform: scale(0.5) rotate(-5deg) translateX(10px); opacity: 0.7; }
+  50% { transform: scale(1.15) rotate(3deg) translateX(-3px); opacity: 1; }
+  70% { transform: scale(0.95) rotate(-1deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg) translateX(0); opacity: 1; }
 }
 
 // ===== Minimized Indicator =====
@@ -567,6 +575,7 @@ onUnmounted(() => {
   border-radius: 6px 6px 10px 10px;
   position: relative;
   box-shadow: 0 3px 12px rgba(124, 58, 237, 0.3);
+  overflow: visible;
 }
 
 .robot-screen {

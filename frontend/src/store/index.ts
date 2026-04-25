@@ -9,6 +9,7 @@ import {
   generateReturnTrend,
   generateWeeklyTrend,
 } from '@/utils/mockData'
+import { generateHotProperties, generatePredictions } from '@/utils/pageMockData'
 
 export const useDashboardStore = defineStore('dashboard', () => {
   // 核心数据
@@ -19,6 +20,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const dealTrend = ref(generateDealTrend())
   const returnTrend = ref(generateReturnTrend())
   const weeklyTrend = ref(generateWeeklyTrend())
+  const hotProperties = ref(generateHotProperties())
+  const predictions = ref(generatePredictions())
 
   const lastUpdateTime = ref(new Date())
   const isRefreshing = ref(false)
@@ -32,6 +35,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
     dealTrend.value = generateDealTrend()
     returnTrend.value = generateReturnTrend()
     weeklyTrend.value = generateWeeklyTrend()
+    hotProperties.value = generateHotProperties()
+    predictions.value = generatePredictions()
     lastUpdateTime.value = new Date()
     setTimeout(() => { isRefreshing.value = false }, 600)
   }
@@ -58,6 +63,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
     dealTrend,
     returnTrend,
     weeklyTrend,
+    hotProperties,
+    predictions,
     lastUpdateTime,
     isRefreshing,
     refreshAll,
