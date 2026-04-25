@@ -22,8 +22,20 @@ const props = withDefaults(defineProps<{
   points?: MapPoint[]
   regions?: { name: string; value: number; level: string }[]
   showPropertyDetail?: boolean
+  zoomLevel?: number
+  mapGeoUrl?: string
+  mapName?: string
+  center?: number[]
+  scaleLimitMin?: number
+  scaleLimitMax?: number
 }>(), {
   showPropertyDetail: true,
+  zoomLevel: 8,
+  mapGeoUrl: 'https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json',
+  mapName: 'china',
+  center: () => [114.5, 38.0],
+  scaleLimitMin: 3,
+  scaleLimitMax: 30,
 })
 
 const mapRef = ref<HTMLDivElement | null>(null)
@@ -62,11 +74,11 @@ async function initMap() {
   chart = echarts.init(mapRef.value, 'dark')
 
   try {
-    const resp = await fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
-    const chinaJson = await resp.json()
-    echarts.registerMap('china', chinaJson)
+    const resp = await fetch(props.mapGeoUrl)
+    const geoJson = await resp.json()
+    echarts.registerMap(props.mapName, geoJson)
   } catch {
-    echarts.registerMap('china', { type: 'FeatureCollection', features: [] })
+    echarts.registerMap(props.mapName, { type: 'FeatureCollection', features: [] })
   }
 
   updateChart()
@@ -108,18 +120,18 @@ function updateChart() {
       },
     },
     geo: {
-      map: 'china',
+      map: props.mapName,
       roam: true,
-      zoom: 5,
-      center: [114.5, 38.0],
-      scaleLimit: { min: 2, max: 20 },
+      zoom: props.zoomLevel,
+      center: props.center,
+      scaleLimit: { min: props.scaleLimitMin, max: props.scaleLimitMax },
       label: {
         show: true,
-        color: 'rgba(255,255,255,0.25)',
-        fontSize: 9,
+        color: 'rgba(255,255,255,0.45)',
+        fontSize: 11,
       },
       emphasis: {
-        label: { color: '#e2e8f0', fontSize: 11, fontWeight: 'bold' },
+        label: { color: '#e2e8f0', fontSize: 13, fontWeight: 'bold' },
         itemStyle: { areaColor: 'rgba(99, 102, 241, 0.15)' },
       },
       itemStyle: {
@@ -131,18 +143,30 @@ function updateChart() {
     series: [
       {
         type: 'map',
-        map: 'china',
+        map: props.mapName,
         geoIndex: 0,
         data: rgs.map(r => ({
           name: r.name,
           value: r.value,
           itemStyle: {
             areaColor: r.level === 'active'
-              ? 'rgba(99, 102, 241, 0.2)'
+              ? 'rgba(34, 197, 94, 0.18)'
+              : r.level === 'warning'
+              ? 'rgba(245, 158, 11, 0.18)'
+              : r.level === 'danger'
+              ? 'rgba(239, 68, 68, 0.18)'
               : 'rgba(30, 34, 42, 0.8)',
           },
           emphasis: {
-            itemStyle: { areaColor: 'rgba(99, 102, 241, 0.3)' },
+            itemStyle: {
+              areaColor: r.level === 'active'
+                ? 'rgba(34, 197, 94, 0.35)'
+                : r.level === 'warning'
+                ? 'rgba(245, 158, 11, 0.35)'
+                : r.level === 'danger'
+                ? 'rgba(239, 68, 68, 0.35)'
+                : 'rgba(99, 102, 241, 0.3)',
+            },
           },
         })),
       },
@@ -166,7 +190,7 @@ function updateChart() {
           formatter: '{b}',
           position: 'right',
           color: '#e2e8f0',
-          fontSize: 9,
+          fontSize: 10,
           fontWeight: 600,
           textBorderColor: 'rgba(0,0,0,0.6)',
           textBorderWidth: 2,

@@ -18,7 +18,13 @@
       <template v-if="viewMode2D === 'map'">
         <div class="map-container card">
           <div class="map-chart-area">
-            <ChinaMap :points="mapPoints" :regions="mapRegions" />
+            <ChinaMap :points="mapPoints" :regions="mapRegions" :zoom-level="1.15"
+              map-geo-url="https://geo.datav.aliyun.com/areas_v3/bound/130100_full.json"
+              map-name="shijiazhuang"
+              :center="[114.5, 38.04]"
+              :scale-limit-min="0.8"
+              :scale-limit-max="20"
+            />
           </div>
           <div class="map-legend">
             <div class="ml-item"><span class="ml-dot healthy" />健康去化 (≥65%)</div>
@@ -206,9 +212,11 @@ const mapPoints = computed(() => {
   }))
 })
 
-const mapRegions = computed(() => [
-  { name: '河北省', value: 86, level: 'active' },
-])
+const mapRegions = computed(() => regions.value.map(r => ({
+  name: r.name,
+  value: r.depletionRate,
+  level: r.riskLevel === 'low' ? 'active' : r.riskLevel === 'medium' ? 'warning' : 'danger',
+})))
 
 const dispatchPlan = computed(() => regions.value.map(r => ({
   region: r.name, projects: r.projects,
@@ -238,7 +246,7 @@ const regionScatterData = computed(() => regions.value.map(r => ({ name: r.name,
 
 // Map mode
 .map-container { flex: 1; display: flex; flex-direction: column; gap: 10px; min-height: 400px; }
-.map-chart-area { flex: 1; min-height: 300px; border-radius: 8px; overflow: hidden; }
+.map-chart-area { flex: 1; min-height: 400px; border-radius: 8px; overflow: hidden; }
 .map-legend { display: flex; gap: 16px; padding: 6px 10px; justify-content: center; }
 .ml-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-caption, #64748b); }
 .ml-dot { width: 8px; height: 8px; border-radius: 50%;

@@ -1,6 +1,6 @@
 <template>
-  <div class="target-tracker">
-    <div v-for="item in targets" :key="item.label" class="target-row" :class="item.status">
+  <div class="target-tracker" :class="{ compact }">
+    <div v-for="item in targets" :key="item.label" class="target-row" :class="[item.status, { compact }]">
       <div class="target-head">
         <span class="target-label">{{ item.label }}</span>
         <div class="target-values">
@@ -16,7 +16,7 @@
         </div>
         <span class="target-pct" :class="item.status">{{ item.progress.toFixed(1) }}%</span>
       </div>
-      <div class="target-footer">
+      <div v-if="!compact" class="target-footer">
         <span class="target-yoy" :class="item.yoy >= 0 ? 'up' : 'down'">
           同比 {{ item.yoy >= 0 ? '+' : '' }}{{ item.yoy }}%
         </span>
@@ -34,17 +34,27 @@
 <script setup lang="ts">
 import type { TargetItem } from '@/utils/mockData'
 
-defineProps<{
+withDefaults(defineProps<{
   targets: TargetItem[]
-}>()
+  compact?: boolean
+}>(), {
+  compact: false,
+})
 </script>
 
 <style scoped lang="scss">
 .target-tracker {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 6px 10px 10px;
+  gap: 6px;
+  padding: 4px 10px 8px;
+
+  &.compact {
+    flex-direction: row;
+    gap: 6px;
+    padding: 4px 8px 6px;
+    overflow-x: auto;
+  }
 }
 
 .target-row {
@@ -52,6 +62,12 @@ defineProps<{
   border-radius: 8px;
   border: 1px solid transparent;
   transition: all 0.25s;
+  flex-shrink: 0;
+
+  &.compact {
+    min-width: 170px;
+    padding: 6px 8px;
+  }
 
   &.on-track {
     background: rgba(34, 197, 94, 0.06);
@@ -71,13 +87,15 @@ defineProps<{
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .target-label {
   font-size: 11px;
   font-weight: 600;
   color: var(--text-title, #e2e8f0);
+
+  .compact & { font-size: 10px; }
 }
 
 .target-values {
@@ -91,6 +109,8 @@ defineProps<{
   font-size: 14px;
   font-weight: 700;
   color: var(--text-body, #cbd5e1);
+
+  .compact & { font-size: 12px; }
 
   small {
     font-size: 9px;
@@ -111,6 +131,8 @@ defineProps<{
   font-size: 11px;
   color: var(--text-caption, #64748b);
 
+  .compact & { font-size: 10px; }
+
   small {
     font-size: 9px;
     opacity: 0.6;
@@ -121,17 +143,19 @@ defineProps<{
 .target-bar-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 6px;
+  margin-bottom: 3px;
 }
 
 .target-bar {
   flex: 1;
-  height: 6px;
+  height: 5px;
   background: var(--bar-track, rgba(255, 255, 255, 0.05));
   border-radius: 3px;
   overflow: visible;
   position: relative;
+
+  .compact & { height: 4px; }
 }
 
 .target-bar-fill {
@@ -148,10 +172,12 @@ defineProps<{
   position: absolute;
   top: -2px;
   width: 2px;
-  height: 10px;
+  height: 9px;
   background: var(--text-caption, #64748b);
   border-radius: 1px;
   opacity: 0.5;
+
+  .compact & { height: 8px; }
 }
 
 .target-pct {
@@ -159,8 +185,10 @@ defineProps<{
   font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
-  min-width: 48px;
+  min-width: 44px;
   text-align: right;
+
+  .compact & { font-size: 10px; min-width: 38px; }
 
   &.on-track { color: var(--success, #22C55E); }
   &.at-risk { color: var(--warning, #F59E0B); }

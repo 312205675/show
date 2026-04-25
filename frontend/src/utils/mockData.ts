@@ -43,7 +43,10 @@ export function generateCoreKPI() {
   const todayDeals = fluctuate(18, 8)
   const monthDeals = fluctuate(386, 40)
   const momGrowth = fluctuate(5.2, 8, 1)
-  return { depletionRate, totalSales, returnAmount, returnRate, inventoryUnits, inventoryValue, todayDeals, monthDeals, momGrowth }
+  const cashFlow = fluctuate(12.8, 5, 1)
+  const profitMargin = fluctuate(18.5, 4, 1)
+  const salesEfficiency = fluctuate(72, 10, 1)
+  return { depletionRate, totalSales, returnAmount, returnRate, inventoryUnits, inventoryValue, todayDeals, monthDeals, momGrowth, cashFlow, profitMargin, salesEfficiency }
 }
 
 // ========== 经营结论 ==========

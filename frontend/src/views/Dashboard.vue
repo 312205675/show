@@ -78,12 +78,11 @@
                   <DigitalFlipper :value="store.coreKPI.returnRate" :decimals="1" :size="34" :color="returnColor" />
                   <span class="kpi-unit" :style="{ color: returnColor }">%</span>
                 </div>
-                <div class="kpi-sub">回款 {{ store.coreKPI.returnAmount.toFixed(1) }}亿</div>
                 <div class="kpi-bar"><div class="kpi-bar-fill" :style="{ width: store.coreKPI.returnRate + '%', background: returnColor }" /></div>
               </div>
 
               <div class="kpi-card" :class="inventoryClass" @click="openKPIDetail({ label: '总库存套数', value: store.coreKPI.inventoryUnits, color: inventoryColor })">
-                <div class="kpi-label">总库存套数</div>
+                <div class="kpi-label">总库存</div>
                 <div class="kpi-main">
                   <DigitalFlipper :value="store.coreKPI.inventoryUnits" :decimals="0" :size="34" :color="inventoryColor" />
                   <span class="kpi-unit" :style="{ color: inventoryColor }">套</span>
@@ -91,24 +90,23 @@
                 <div class="kpi-sub">货值 {{ store.coreKPI.inventoryValue }}亿</div>
               </div>
 
-              <div class="kpi-card normal" @click="openKPIDetail({ label: '今日成交', value: store.coreKPI.todayDeals, color: 'var(--text-caption)' })">
-                <div class="kpi-label">今日成交</div>
+              <div class="kpi-card" :class="store.coreKPI.cashFlow >= 10 ? 'healthy' : store.coreKPI.cashFlow >= 5 ? 'warning' : 'danger'" @click="openKPIDetail({ label: '现金流', value: store.coreKPI.cashFlow, color: store.coreKPI.cashFlow >= 10 ? 'var(--success)' : store.coreKPI.cashFlow >= 5 ? 'var(--warning)' : 'var(--danger)' })">
+                <div class="kpi-label">现金流</div>
                 <div class="kpi-main">
-                  <DigitalFlipper :value="store.coreKPI.todayDeals" :decimals="0" :size="34" color="var(--text-caption)" />
-                  <span class="kpi-unit" style="color: var(--text-caption)">套</span>
+                  <DigitalFlipper :value="store.coreKPI.cashFlow" :decimals="1" :size="34" :color="store.coreKPI.cashFlow >= 10 ? 'var(--success)' : store.coreKPI.cashFlow >= 5 ? 'var(--warning)' : 'var(--danger)'" />
+                  <span class="kpi-unit" :style="{ color: store.coreKPI.cashFlow >= 10 ? 'var(--success)' : store.coreKPI.cashFlow >= 5 ? 'var(--warning)' : 'var(--danger)' }">亿</span>
                 </div>
               </div>
 
-              <div class="kpi-card normal" @click="openKPIDetail({ label: '本月成交', value: store.coreKPI.monthDeals, color: 'var(--text-caption)' })">
-                <div class="kpi-label">本月成交</div>
+              <div class="kpi-card" :class="store.coreKPI.profitMargin >= 20 ? 'healthy' : store.coreKPI.profitMargin >= 15 ? 'warning' : 'danger'" @click="openKPIDetail({ label: '利润率', value: store.coreKPI.profitMargin, color: store.coreKPI.profitMargin >= 20 ? 'var(--success)' : store.coreKPI.profitMargin >= 15 ? 'var(--warning)' : 'var(--danger)' })">
+                <div class="kpi-label">利润率</div>
                 <div class="kpi-main">
-                  <DigitalFlipper :value="store.coreKPI.monthDeals" :decimals="0" :size="34" color="var(--text-caption)" />
-                  <span class="kpi-unit" style="color: var(--text-caption)">套</span>
+                  <DigitalFlipper :value="store.coreKPI.profitMargin" :decimals="1" :size="34" :color="store.coreKPI.profitMargin >= 20 ? 'var(--success)' : store.coreKPI.profitMargin >= 15 ? 'var(--warning)' : 'var(--danger)'" />
+                  <span class="kpi-unit" :style="{ color: store.coreKPI.profitMargin >= 20 ? 'var(--success)' : store.coreKPI.profitMargin >= 15 ? 'var(--warning)' : 'var(--danger)' }">%</span>
                 </div>
-                <div class="kpi-sub">今日 {{ store.coreKPI.todayDeals }} 套</div>
               </div>
 
-              <div class="kpi-card" :class="growthClass" @click="openKPIDetail({ label: '环比增长', value: store.coreKPI.momGrowth, color: growthColor })">
+              <div class="kpi-card normal" @click="openKPIDetail({ label: '环比增长', value: store.coreKPI.momGrowth, color: growthColor })">
                 <div class="kpi-label">环比增长</div>
                 <div class="kpi-main">
                   <DigitalFlipper :value="store.coreKPI.momGrowth" :decimals="1" :size="34" :color="growthColor" />
@@ -118,33 +116,40 @@
                   {{ store.coreKPI.momGrowth >= 0 ? '▲' : '▼' }}
                 </div>
               </div>
+
+              <!-- Period Selector -->
+              <div class="period-selector">
+                <button v-for="p in (['day','week','month','year'] as const)" :key="p" class="period-btn" :class="{ active: period === p }" @click="period = p">{{ periodLabels[p] }}</button>
+              </div>
             </section>
 
-            <!-- ===== Annual Target Tracker ===== -->
+            <!-- ===== Annual Target Tracker (Compact) ===== -->
             <section v-if="currentPage === 0" class="target-banner">
-              <TargetTracker :targets="store.targets" />
+              <TargetTracker :targets="store.targets" :compact="true" />
             </section>
 
-            <!-- ===== Floating Risk Diagnosis Banner ===== -->
-            <div class="floating-risk" :class="{ expanded: riskExpanded }" @click="riskExpanded = !riskExpanded">
-              <div class="fr-header">
-                <svg class="fr-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <span class="fr-title">问题诊断</span>
-                <span class="fr-badge" :class="store.riskDiagnosis.some(r => r.severity === 'danger') ? 'danger' : 'warn'">{{ store.riskDiagnosis.length }}</span>
-                <svg class="fr-expand" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            <!-- ===== Risk Alert Carousel ===== -->
+            <section v-if="store.riskDiagnosis.length > 0" class="risk-carousel">
+              <div class="rc-header">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span class="rc-title">预警监控</span>
+                <span class="rc-count" :class="store.riskDiagnosis.some(r => r.severity === 'danger') ? 'danger' : 'warn'">{{ store.riskDiagnosis.length }}</span>
               </div>
-              <div v-if="riskExpanded" class="fr-body">
-                <div v-for="(item, idx) in store.riskDiagnosis" :key="idx" class="fr-item" :class="`severity-${item.severity}`" @click.stop="openRiskDetail(item)">
-                  <span v-if="item.severity === 'danger'" class="fr-pulse danger" />
-                  <span v-else class="fr-dot warn" />
-                  <div class="fr-item-body">
-                    <span class="fr-item-project">{{ item.projectName }}</span>
-                    <span class="fr-item-desc">{{ item.description }}</span>
+              <div class="rc-body">
+                <Transition name="rc-slide" mode="out-in">
+                  <div :key="riskCarouselIdx" class="rc-item" :class="`severity-${store.riskDiagnosis[riskCarouselIdx].severity}`" @click="openRiskDetail(store.riskDiagnosis[riskCarouselIdx])">
+                    <span v-if="store.riskDiagnosis[riskCarouselIdx].severity === 'danger'" class="rc-pulse danger" />
+                    <span v-else class="rc-dot warn" />
+                    <span class="rc-project">{{ store.riskDiagnosis[riskCarouselIdx].projectName }}</span>
+                    <span class="rc-desc">{{ store.riskDiagnosis[riskCarouselIdx].description }}</span>
+                    <svg class="rc-arrow" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                   </div>
-                </div>
-                <div v-if="store.riskDiagnosis.length === 0" class="fr-empty">所有项目运行正常</div>
+                </Transition>
               </div>
-            </div>
+              <div class="rc-dots">
+                <span v-for="(_, i) in store.riskDiagnosis" :key="i" class="rc-dot-indicator" :class="{ active: i === riskCarouselIdx }" @click="riskCarouselIdx = i; startRiskCarousel()" />
+              </div>
+            </section>
 
             <!-- ===== MAIN BODY (Enhanced 3-column + bottom) ===== -->
             <div class="exec-body">
@@ -403,7 +408,7 @@
                   <span class="ml3-item"><span class="ml3-dot danger" />预警</span>
                 </div>
               </div>
-              <ChinaMap :show-property-detail="true" />
+              <ChinaMap :show-property-detail="true" :zoom-level="presentMode ? 12 : 8" />
               <!-- KPI overlay -->
               <div class="globe-overlay">
                 <div class="overlay-kpi" :class="depletionClass">
@@ -514,7 +519,11 @@
         <div class="present-hint">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 18 15 12 9 6"/></svg>
-          <span>自动轮播中 · 点击左右切换 · ESC退出</span>
+          <span>{{ presentAutoEnabled ? '自动轮播中' : '手动模式' }} · 点击左右切换 · ESC退出</span>
+          <button class="present-auto-toggle" @click="togglePresentAuto" :title="presentAutoEnabled ? '暂停自动轮播' : '开启自动轮播'">
+            <svg v-if="presentAutoEnabled" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
         </div>
       </div>
     </Transition>
@@ -603,21 +612,29 @@ const showSwipeHint = ref(true)
 
 // Fullscreen state
 const fsKey = ref<string | null>(null)
-const riskExpanded = ref(false)
 const leftActiveTab = ref<'trends' | 'pie' | 'areamap' | 'radar'>('trends')
 
 // Presentation Mode
 const presentMode = ref(false)
 const presentAutoTimer = ref<ReturnType<typeof setInterval> | null>(null)
 const presentProgress = ref(0)
-const PRESENT_INTERVAL = 8000 // 8 seconds per page
+const presentAutoEnabled = ref(true)
+const PRESENT_INTERVAL = 15000 // 15 seconds per page
+
+// Period selector
+const period = ref<'day' | 'week' | 'month' | 'year'>('month')
+const periodLabels: Record<string, string> = { day: '日', week: '周', month: '月', year: '年' }
+
+// Risk carousel
+const riskCarouselIdx = ref(0)
+let riskCarouselTimer: ReturnType<typeof setInterval> | null = null
 
 function togglePresentation() {
   presentMode.value = !presentMode.value
   if (presentMode.value) {
     currentPage.value = 0
     presentProgress.value = 0
-    startPresentAutoRotate()
+    if (presentAutoEnabled.value) startPresentAutoRotate()
     playExpandSound()
   } else {
     stopPresentAutoRotate()
@@ -649,6 +666,30 @@ function stopPresentAutoRotate() {
     presentAutoTimer.value = null
   }
   presentProgress.value = 0
+}
+
+function togglePresentAuto() {
+  presentAutoEnabled.value = !presentAutoEnabled.value
+  if (presentAutoEnabled.value) {
+    startPresentAutoRotate()
+  } else {
+    stopPresentAutoRotate()
+  }
+}
+
+function startRiskCarousel() {
+  stopRiskCarousel()
+  if (store.riskDiagnosis.length <= 1) return
+  riskCarouselTimer = setInterval(() => {
+    riskCarouselIdx.value = (riskCarouselIdx.value + 1) % store.riskDiagnosis.length
+  }, 4000)
+}
+
+function stopRiskCarousel() {
+  if (riskCarouselTimer) {
+    clearInterval(riskCarouselTimer)
+    riskCarouselTimer = null
+  }
 }
 
 function toggleFs(key: string) {
@@ -778,10 +819,10 @@ function handleWheel(e: WheelEvent) {
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'ArrowRight' && currentPage.value < pages.value.length - 1) {
     currentPage.value++
-    if (presentMode.value) { presentProgress.value = 0; startPresentAutoRotate() }
+    if (presentMode.value && presentAutoEnabled.value) { presentProgress.value = 0; startPresentAutoRotate() }
   } else if (e.key === 'ArrowLeft' && currentPage.value > 0) {
     currentPage.value--
-    if (presentMode.value) { presentProgress.value = 0; startPresentAutoRotate() }
+    if (presentMode.value && presentAutoEnabled.value) { presentProgress.value = 0; startPresentAutoRotate() }
   } else if (e.key === 'Escape') {
     if (fsKey.value) {
       fsKey.value = null
@@ -825,11 +866,13 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
   clockTimer = setInterval(() => { now.value = new Date() }, 1000)
   setTimeout(() => { showSwipeHint.value = false }, 4000)
+  startRiskCarousel()
 })
 
 onUnmounted(() => {
   stop()
   stopPresentAutoRotate()
+  stopRiskCarousel()
   if (clockTimer) clearInterval(clockTimer)
   window.removeEventListener('touchstart', handleTouchStart)
   window.removeEventListener('touchend', handleTouchEnd)
@@ -852,7 +895,7 @@ onUnmounted(() => {
     .exec-header { display: none; }
     .dash-main { flex: 1; }
     .target-banner { display: none; }
-    .floating-risk { display: none; }
+    .risk-carousel { display: none; }
     .swipe-hint { display: none; }
   }
 }
@@ -1160,6 +1203,17 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  perspective: 1200px;
+
+  // 3D depth layering for right panels
+  .panel-card:nth-child(1) { transform: perspective(1200px) translateZ(0px); }
+  .panel-card:nth-child(2) { transform: perspective(1200px) translateZ(5px); }
+  .panel-card:nth-child(3) { transform: perspective(1200px) translateZ(10px); }
+  .panel-card:nth-child(4) { transform: perspective(1200px) translateZ(15px); }
+
+  .panel-card:hover {
+    transform: perspective(800px) translateZ(30px) scale(1.03) rotateX(1deg);
+  }
 }
 
 // ===== Panel Card (reusable) — with enhanced 3D depth =====
@@ -1172,14 +1226,24 @@ onUnmounted(() => {
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 1px rgba(96, 165, 250, 0.05);
 
-  // Enhanced 3D perspective depth
+  // 3D layered depth effect
   transform: perspective(1200px) translateZ(0);
+  transform-style: preserve-3d;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+  }
 
   &:hover {
-    transform: perspective(800px) translateZ(20px) scale(1.04) rotateX(1.5deg);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45), 0 0 40px rgba(96, 165, 250, 0.08);
+    transform: perspective(800px) translateZ(30px) scale(1.03) rotateX(1deg);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 40px rgba(96, 165, 250, 0.06);
     border-color: rgba(96, 165, 250, 0.2);
     z-index: 2;
   }
@@ -1516,110 +1580,135 @@ onUnmounted(() => {
   height: 100%;
 }
 
-// ===== Floating Risk Diagnosis =====
-.floating-risk {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 15;
-  border-radius: 10px;
+// ===== Risk Alert Carousel =====
+.risk-carousel {
+  flex-shrink: 0;
+  border-radius: 8px;
   background: var(--card-bg, #161B22);
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(12px);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  animation: riskFloat 6s ease-in-out infinite;
-  max-width: 320px;
-
-  &:hover {
-    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.5), 0 0 16px rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.2);
-  }
-
-  &.expanded {
-    max-width: 400px;
-    animation: none;
-  }
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-@keyframes riskFloat {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  25% { transform: translateX(-48%) translateY(-4px); }
-  50% { transform: translateX(-52%) translateY(2px); }
-  75% { transform: translateX(-50%) translateY(-2px); }
-}
-
-.fr-header {
+.rc-header {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.04));
+  svg { color: var(--danger, #EF4444); animation: riskPulse 2s ease-in-out infinite; }
 }
 
-.fr-icon { color: var(--danger, #EF4444); animation: riskPulse 2s ease-in-out infinite; }
-@keyframes riskPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.rc-title { font-size: 11px; font-weight: 600; color: var(--text-title, #e2e8f0); flex: 1; }
 
-.fr-title { font-size: 12px; font-weight: 600; color: var(--text-title, #e2e8f0); flex: 1; }
-
-.fr-badge {
-  font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 8px; font-family: 'JetBrains Mono', monospace;
+.rc-count {
+  font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 8px; font-family: 'JetBrains Mono', monospace;
   &.danger { background: var(--danger-light, rgba(239,68,68,0.15)); color: var(--danger, #EF4444); }
   &.warn { background: var(--warning-light, rgba(245,158,11,0.15)); color: var(--warning, #F59E0B); }
 }
 
-.fr-expand {
-  color: var(--text-caption, #64748b);
-  transition: transform 0.3s;
-  .expanded & { transform: rotate(180deg); }
-}
+@keyframes riskPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-.fr-body {
-  padding: 0 12px 10px;
+.rc-body {
+  padding: 4px 10px;
+  min-height: 32px;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 200px;
-  overflow-y: auto;
-  animation: riskBodyIn 0.3s ease;
+  align-items: center;
 }
 
-@keyframes riskBodyIn {
-  from { opacity: 0; max-height: 0; }
-  to { opacity: 1; max-height: 200px; }
-}
-
-.fr-item {
+.rc-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
-  padding: 6px 8px;
+  padding: 4px 6px;
   border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
   transition: all 0.2s;
 
-  &.severity-danger { background: var(--danger-light, rgba(239,68,68,0.1)); }
-  &.severity-warn { background: var(--warning-light, rgba(245,158,11,0.1)); }
+  &.severity-danger { background: var(--danger-light, rgba(239,68,68,0.08)); }
+  &.severity-warn { background: var(--warning-light, rgba(245,158,11,0.06)); }
 
   &:hover { transform: translateX(2px); }
 }
 
-.fr-pulse {
-  display: block; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+.rc-pulse {
+  width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
   &.danger { background: var(--danger, #EF4444); box-shadow: 0 0 6px var(--danger-light, rgba(239,68,68,0.3)); animation: pulseDanger 2s ease-in-out infinite; }
 }
-@keyframes pulseDanger { 0%, 100% { box-shadow: 0 0 4px rgba(239,68,68,0.2); } 50% { box-shadow: 0 0 10px rgba(239,68,68,0.5); } }
 
-.fr-dot {
-  display: block; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+.rc-dot {
+  width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
   &.warn { background: var(--warning, #F59E0B); }
 }
 
-.fr-item-body { flex: 1; min-width: 0; }
-.fr-item-project { font-size: 11px; font-weight: 600; color: var(--text-title, #e2e8f0); display: block; }
-.fr-item-desc { font-size: 10px; color: var(--text-caption, #64748b); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@keyframes pulseDanger { 0%, 100% { box-shadow: 0 0 4px rgba(239,68,68,0.2); } 50% { box-shadow: 0 0 10px rgba(239,68,68,0.5); } }
 
-.fr-empty { font-size: 11px; color: var(--success, #22C55E); text-align: center; padding: 8px; }
+.rc-project { font-size: 10px; font-weight: 600; color: var(--text-title, #e2e8f0); white-space: nowrap; }
+.rc-desc { font-size: 10px; color: var(--text-caption, #64748b); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-arrow { color: var(--text-caption, #64748b); flex-shrink: 0; opacity: 0.5; }
+
+.rc-dots {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 0 5px;
+}
+
+.rc-dot-indicator {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--border, rgba(255,255,255,0.1));
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &.active {
+    background: var(--primary, #60a5fa);
+    box-shadow: 0 0 6px rgba(96, 165, 250, 0.3);
+  }
+
+  &:hover { background: var(--text-caption, #64748b); }
+}
+
+.rc-slide-enter-active { transition: all 0.3s ease-out; }
+.rc-slide-leave-active { transition: all 0.2s ease-in; }
+.rc-slide-enter-from { opacity: 0; transform: translateY(6px); }
+.rc-slide-leave-to { opacity: 0; transform: translateY(-6px); }
+
+// ===== Period Selector =====
+.period-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--card-bg, #161B22);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.period-btn {
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-caption, #64748b);
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+
+  &:hover { color: var(--text-body, #cbd5e1); background: rgba(255,255,255,0.04); }
+
+  &.active {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--primary, #60a5fa);
+    box-shadow: 0 0 6px rgba(99,102,241,0.1);
+  }
+}
 
 // ===== 3D Mode Layout =====
 .exec-3d-layout {
@@ -1984,6 +2073,26 @@ onUnmounted(() => {
   animation: hintFade 3s ease-in-out infinite;
 
   svg { color: var(--text-caption, #64748b); opacity: 0.6; }
+}
+
+.present-auto-toggle {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: var(--text-caption, #64748b);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-left: 4px;
+
+  &:hover {
+    background: rgba(96, 165, 250, 0.15);
+    color: var(--primary, #60a5fa);
+    border-color: rgba(96, 165, 250, 0.2);
+  }
 }
 
 @keyframes hintFade {
