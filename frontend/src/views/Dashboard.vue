@@ -25,10 +25,14 @@
           <span class="clock-time">{{ currentTime }}</span>
           <span class="clock-date">{{ currentDate }}</span>
         </div>
+        <button class="mute-btn" :class="{ muted: isMuted }" @click="toggleMute" :title="isMuted ? '取消静音' : '静音'">
+          <svg v-if="!isMuted" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        </button>
         <FontSizer />
         <ModeToggle />
         <ThemeSwitcher />
-        <PageNav :current-page="currentPage" :pages="pages" @change="switchPage" />
+        <PageNav :current-page="currentPage" :pages="pages" @change="switchPage" @reorder="onReorderPages" />
         <button class="refresh-btn" :class="{ spinning: store.isRefreshing }" @click="store.refreshAll()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
         </button>
@@ -307,6 +311,25 @@
                 </div>
                 <div class="split-right">
                   <Globe3D :markers="globeMarkers" />
+                  <!-- Core indicators overlay on globe -->
+                  <div class="globe-overlay">
+                    <div class="overlay-kpi" :class="depletionClass">
+                      <span class="ov-label">去化率</span>
+                      <span class="ov-value" :style="{ color: depletionColor }">{{ store.coreKPI.depletionRate.toFixed(1) }}<small>%</small></span>
+                    </div>
+                    <div class="overlay-kpi primary-kpi">
+                      <span class="ov-label">销售额</span>
+                      <span class="ov-value" style="color: var(--primary, #60a5fa)">{{ store.coreKPI.totalSales.toFixed(1) }}<small>亿</small></span>
+                    </div>
+                    <div class="overlay-kpi" :class="returnClass">
+                      <span class="ov-label">回款率</span>
+                      <span class="ov-value" :style="{ color: returnColor }">{{ store.coreKPI.returnRate.toFixed(1) }}<small>%</small></span>
+                    </div>
+                    <div class="overlay-kpi" :class="inventoryClass">
+                      <span class="ov-label">库存</span>
+                      <span class="ov-value" :style="{ color: inventoryColor }">{{ store.coreKPI.inventoryUnits }}<small>套</small></span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -348,6 +371,12 @@
       <KPIDetail v-if="activeKPI" :kpi="activeKPI" />
     </DetailModal>
 
+    <!-- ===== Notification Center (pop-up notifications) ===== -->
+    <NotificationCenter />
+
+    <!-- ===== AI Assistant Robot ===== -->
+    <AIAssistant />
+
     <!-- Swipe Hint -->
     <Transition name="fade">
       <div v-if="showSwipeHint" class="swipe-hint" @click="showSwipeHint = false">
@@ -365,6 +394,7 @@ import { onMounted, onUnmounted, ref, computed, defineAsyncComponent, markRaw, t
 import { useDashboardStore } from '@/store'
 import { useThemeStore } from '@/store/theme'
 import { useAutoRefresh } from '@/composables/useAutoRefresh'
+import { useSound } from '@/composables/useSound'
 import type { ProjectItem, RiskItem } from '@/utils/mockData'
 import { fluctuate } from '@/utils/mockData'
 
@@ -383,6 +413,10 @@ import FontSizer from '@/components/common/FontSizer.vue'
 import PageNav from '@/components/common/PageNav.vue'
 import DetailModal from '@/components/common/DetailModal.vue'
 import FloatingAlerts from '@/components/common/FloatingAlerts.vue'
+import NotificationCenter from '@/components/common/NotificationCenter.vue'
+import AIAssistant from '@/components/common/AIAssistant.vue'
+
+const { isMuted, toggleMute, playClickSound, playExpandSound, playHoverSound } = useSound()
 
 const ProjectDetail = defineAsyncComponent(() => import('@/components/detail/ProjectDetail.vue'))
 const RiskDetail = defineAsyncComponent(() => import('@/components/detail/RiskDetail.vue'))
@@ -402,7 +436,7 @@ interface PageDef {
   component?: Component
 }
 
-const pages: PageDef[] = [
+const pages = ref<PageDef[]>([
   { key: 'dashboard', label: '总览', icon: '◉' },
   { key: 'project', label: '项目深度', icon: '◈', component: ProjectDeepPage },
   { key: 'channel', label: '渠道分析', icon: '⬡', component: ChannelPage },
@@ -410,9 +444,9 @@ const pages: PageDef[] = [
   { key: 'funnel', label: '销售漏斗', icon: '▽', component: FunnelPage },
   { key: 'inventory', label: '库存定价', icon: '◻', component: InventoryPage },
   { key: 'region', label: '区域对比', icon: '◇', component: RegionPage },
-]
+])
 
-const drillPages = pages.slice(1)
+const drillPages = computed(() => pages.value.slice(1))
 
 const store = useDashboardStore()
 const themeStore = useThemeStore()
@@ -428,6 +462,12 @@ const fsKey = ref<string | null>(null)
 function toggleFs(key: string) {
   fsKey.value = fsKey.value === key ? null : key
   document.body.style.overflow = fsKey.value ? 'hidden' : ''
+  if (fsKey.value) playExpandSound()
+}
+
+// Handle tab reorder from PageNav
+function onReorderPages(newPages: PageDef[]) {
+  pages.value = newPages
 }
 
 // Real-time clock
@@ -508,6 +548,7 @@ const globeMarkers = computed(() => {
 function switchPage(idx: number) {
   currentPage.value = idx
   showSwipeHint.value = false
+  playClickSound()
 }
 
 // Swipe detection
@@ -523,7 +564,7 @@ function handleTouchEnd(e: TouchEvent) {
   const dx = e.changedTouches[0].clientX - touchStartX
   const dy = e.changedTouches[0].clientY - touchStartY
   if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-    if (dx < 0 && currentPage.value < pages.length - 1) {
+    if (dx < 0 && currentPage.value < pages.value.length - 1) {
       currentPage.value++
     } else if (dx > 0 && currentPage.value > 0) {
       currentPage.value--
@@ -534,7 +575,7 @@ function handleTouchEnd(e: TouchEvent) {
 
 function handleWheel(e: WheelEvent) {
   if (e.deltaX !== 0) {
-    if (e.deltaX > 30 && currentPage.value < pages.length - 1) {
+    if (e.deltaX > 30 && currentPage.value < pages.value.length - 1) {
       currentPage.value++
     } else if (e.deltaX < -30 && currentPage.value > 0) {
       currentPage.value--
@@ -543,7 +584,7 @@ function handleWheel(e: WheelEvent) {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'ArrowRight' && currentPage.value < pages.length - 1) {
+  if (e.key === 'ArrowRight' && currentPage.value < pages.value.length - 1) {
     currentPage.value++
   } else if (e.key === 'ArrowLeft' && currentPage.value > 0) {
     currentPage.value--
@@ -605,7 +646,7 @@ onUnmounted(() => {
 
 // ===== Header =====
 .exec-header {
-  height: 48px;
+  height: 56px;
   display: flex;
   align-items: center;
   padding: 0 16px;
@@ -756,6 +797,31 @@ onUnmounted(() => {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.mute-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  background: var(--card-bg, #161B22);
+  color: var(--text-caption, #64748b);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s;
+
+  &:hover {
+    background: var(--surface-hover, rgba(255, 255, 255, 0.06));
+    border-color: rgba(96, 165, 250, 0.2);
+    color: var(--primary, #60a5fa);
+  }
+
+  &.muted {
+    color: var(--danger, #EF4444);
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+}
+
 // ===== Main Layout =====
 .dash-main {
   flex: 1;
@@ -805,7 +871,7 @@ onUnmounted(() => {
   background: var(--card-bg, #161B22);
   border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -819,11 +885,11 @@ onUnmounted(() => {
     transition: background 0.3s;
   }
 
-  // 3D depth + hover animation
+  // 3D depth + hover animation — enhanced
   &:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-    border-color: rgba(255, 255, 255, 0.12);
+    transform: perspective(800px) translateY(-6px) scale(1.04) rotateX(2deg);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45), 0 0 20px rgba(96, 165, 250, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
   }
 
   &.hero {
@@ -840,10 +906,10 @@ onUnmounted(() => {
   &.primary::before { background: var(--primary, #60a5fa); }
   &.normal::before { background: var(--text-caption, #64748b); }
 
-  &.healthy:hover { border-color: var(--success, #22C55E); box-shadow: 0 8px 30px var(--success-light, rgba(34, 197, 94, 0.2)); }
-  &.warning:hover { border-color: var(--warning, #F59E0B); box-shadow: 0 8px 30px var(--warning-light, rgba(245, 158, 11, 0.2)); }
-  &.danger:hover { border-color: var(--danger, #EF4444); box-shadow: 0 8px 30px var(--danger-light, rgba(239, 68, 68, 0.2)); }
-  &.primary:hover { border-color: rgba(96, 165, 250, 0.3); box-shadow: 0 8px 30px var(--primary-light, rgba(96, 165, 250, 0.15)); }
+  &.healthy:hover { border-color: var(--success, #22C55E); box-shadow: 0 14px 40px var(--success-light, rgba(34, 197, 94, 0.2)), 0 0 20px rgba(34, 197, 94, 0.1); }
+  &.warning:hover { border-color: var(--warning, #F59E0B); box-shadow: 0 14px 40px var(--warning-light, rgba(245, 158, 11, 0.2)), 0 0 20px rgba(245, 158, 11, 0.1); }
+  &.danger:hover { border-color: var(--danger, #EF4444); box-shadow: 0 14px 40px var(--danger-light, rgba(239, 68, 68, 0.2)), 0 0 20px rgba(239, 68, 68, 0.1); }
+  &.primary:hover { border-color: rgba(96, 165, 250, 0.3); box-shadow: 0 14px 40px var(--primary-light, rgba(96, 165, 250, 0.15)), 0 0 20px rgba(96, 165, 250, 0.08); }
 }
 
 .kpi-label { font-size: 10px; font-weight: 500; color: var(--text-caption, #64748b); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
@@ -883,7 +949,7 @@ onUnmounted(() => {
   gap: 8px;
 }
 
-// ===== Panel Card (reusable) — with 3D depth =====
+// ===== Panel Card (reusable) — with enhanced 3D depth =====
 .panel-card {
   border-radius: 10px;
   background: var(--card-bg, #161B22);
@@ -891,17 +957,18 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 
-  // 3D perspective depth
-  transform: perspective(1000px) translateZ(0);
+  // Enhanced 3D perspective depth
+  transform: perspective(1200px) translateZ(0);
 
   &:hover {
-    transform: perspective(1000px) translateZ(8px) scale(1.01);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-    border-color: rgba(96, 165, 250, 0.12);
+    transform: perspective(800px) translateZ(20px) scale(1.04) rotateX(1.5deg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45), 0 0 40px rgba(96, 165, 250, 0.08);
+    border-color: rgba(96, 165, 250, 0.2);
+    z-index: 2;
   }
 
   &.is-fullscreen {
@@ -910,14 +977,26 @@ onUnmounted(() => {
     z-index: 200;
     border-radius: 0;
     background: var(--bg, #0F1217);
-    transform: none;
+    transform: none !important;
     box-shadow: none;
     animation: fsEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 
+    .panel-toolbar {
+      padding: 14px 20px 8px;
+      .panel-title { font-size: 16px; }
+    }
+
     .panel-body {
-      transform: scale(1.15);
-      transform-origin: center center;
+      flex: 1;
       height: 100%;
+      padding: 10px 20px;
+      overflow: auto;
+    }
+
+    &:hover {
+      transform: none !important;
+      box-shadow: none;
+      border-color: transparent;
     }
   }
 }
@@ -1066,22 +1145,22 @@ onUnmounted(() => {
   border-radius: 8px;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 
   &.status-red {
     background: var(--danger-light, rgba(239, 68, 68, 0.15));
     border-color: rgba(239, 68, 68, 0.2);
-    &:hover { border-color: var(--danger, #EF4444); box-shadow: 0 4px 20px var(--danger-light); transform: translateY(-2px) scale(1.02); }
+    &:hover { border-color: var(--danger, #EF4444); box-shadow: 0 8px 24px var(--danger-light); transform: perspective(600px) translateY(-4px) scale(1.04) rotateX(2deg); }
   }
   &.status-yellow {
     background: var(--warning-light, rgba(245, 158, 11, 0.15));
     border-color: rgba(245, 158, 11, 0.2);
-    &:hover { border-color: var(--warning, #F59E0B); box-shadow: 0 4px 20px var(--warning-light); transform: translateY(-2px) scale(1.02); }
+    &:hover { border-color: var(--warning, #F59E0B); box-shadow: 0 8px 24px var(--warning-light); transform: perspective(600px) translateY(-4px) scale(1.04) rotateX(2deg); }
   }
   &.status-green {
     background: var(--success-light, rgba(34, 197, 94, 0.15));
     border-color: rgba(34, 197, 94, 0.15);
-    &:hover { border-color: var(--success, #22C55E); box-shadow: 0 4px 20px var(--success-light); transform: translateY(-2px) scale(1.02); }
+    &:hover { border-color: var(--success, #22C55E); box-shadow: 0 8px 24px var(--success-light); transform: perspective(600px) translateY(-4px) scale(1.04) rotateX(2deg); }
   }
 }
 
@@ -1112,7 +1191,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 
   &.healthy {
@@ -1128,7 +1207,7 @@ onUnmounted(() => {
     border-color: rgba(239, 68, 68, 0.15);
   }
 
-  &:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
+  &:hover { transform: perspective(600px) translateY(-3px) scale(1.04); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); }
 }
 
 .area-name { font-size: 11px; font-weight: 600; color: var(--text-title, #e2e8f0); }
@@ -1177,7 +1256,68 @@ onUnmounted(() => {
 
 .panel-3d-split { display: flex; height: 100%; }
 .split-left { width: 38%; border-right: 1px solid var(--border); overflow-y: auto; }
-.split-right { flex: 1; min-width: 0; }
+.split-right { flex: 1; min-width: 0; position: relative; }
+
+// ===== Globe Overlay (Core Indicators on 3D) =====
+.globe-overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.overlay-kpi {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(15, 18, 23, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: ovFadeIn 0.6s ease-out both;
+
+  &:nth-child(1) { animation-delay: 0.2s; }
+  &:nth-child(2) { animation-delay: 0.4s; }
+  &:nth-child(3) { animation-delay: 0.6s; }
+  &:nth-child(4) { animation-delay: 0.8s; }
+
+  &.healthy { border-left: 2px solid var(--success, #22C55E); }
+  &.warning { border-left: 2px solid var(--warning, #F59E0B); }
+  &.danger { border-left: 2px solid var(--danger, #EF4444); }
+  &.primary-kpi { border-left: 2px solid var(--primary, #60a5fa); }
+}
+
+@keyframes ovFadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ov-label {
+  font-size: 9px;
+  color: var(--text-caption, #64748b);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ov-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+
+  small {
+    font-size: 10px;
+    opacity: 0.6;
+    font-weight: 500;
+    margin-left: 1px;
+  }
+}
 
 .side-3d-panel {
   width: 280px;
@@ -1244,6 +1384,7 @@ onUnmounted(() => {
   .header-right { flex-wrap: wrap; gap: 6px; }
   .brand-sub { display: none; }
   .brand-divider { display: none; }
+  .mute-btn { width: 24px; height: 24px; }
 
   .kpi-banner { gap: 4px; }
   .kpi-card { min-width: calc(50% - 4px); padding: 8px 10px; }
@@ -1255,11 +1396,15 @@ onUnmounted(() => {
 
   .exec-3d-layout { flex-direction: column; }
   .side-3d-panel { width: 100%; max-height: 200px; }
+
+  .globe-overlay { grid-template-columns: 1fr 1fr; gap: 4px; }
+  .ov-value { font-size: 14px; }
 }
 
 @media (max-width: 480px) {
   .kpi-card { min-width: 100%; }
   .area-map-grid { grid-template-columns: 1fr; }
   .gauges-grid { grid-template-columns: 1fr; }
+  .globe-overlay { grid-template-columns: 1fr; }
 }
 </style>

@@ -38,17 +38,17 @@ const props = defineProps<{
 }>()
 
 const commonGrid = {
-  left: '2%',
-  right: '4%',
-  bottom: '8%',
-  top: '12%',
+  left: '3%',
+  right: '5%',
+  bottom: '14%',
+  top: '8%',
   containLabel: true,
 }
 
 const commonXAxis = {
   type: 'category' as const,
   axisLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } },
-  axisLabel: { color: '#64748b', fontSize: 9, interval: 6 },
+  axisLabel: { color: '#64748b', fontSize: 9, interval: 6, rotate: 0 },
   boundaryGap: false,
 }
 
@@ -58,6 +58,7 @@ const commonTooltip = {
   borderColor: 'rgba(96, 165, 250, 0.15)',
   borderWidth: 1,
   textStyle: { color: '#e2e8f0', fontSize: 12 },
+  confine: true,
 }
 
 const dealOption = computed(() => ({
@@ -168,17 +169,12 @@ const returnOption = computed(() => ({
 </script>
 
 <style scoped lang="scss">
-$c-green: #22C55E;
-$c-blue: #60a5fa;
-$c-text: #e2e8f0;
-$c-text-dim: #64748b;
-$c-bar-track: rgba(255, 255, 255, 0.05);
-
 .combined-trend {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 12px 14px;
+  padding: 8px 10px;
+  overflow: hidden;
 }
 
 .trend-section {
@@ -186,16 +182,17 @@ $c-bar-track: rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
 }
 
 .trend-label {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: $c-text;
-  margin-bottom: 6px;
+  color: #e2e8f0;
+  margin-bottom: 4px;
   flex-shrink: 0;
 }
 
@@ -204,13 +201,13 @@ $c-bar-track: rgba(255, 255, 255, 0.05);
   height: 3px;
   border-radius: 1px;
 
-  &.deal-dot { background: $c-blue; }
-  &.return-dot { background: $c-green; }
+  &.deal-dot { background: #60a5fa; }
+  &.return-dot { background: #22C55E; }
 }
 
 .trend-period {
-  font-size: 10px;
-  color: $c-text-dim;
+  font-size: 9px;
+  color: #64748b;
   font-weight: 400;
   margin-left: 4px;
 }
@@ -218,12 +215,13 @@ $c-bar-track: rgba(255, 255, 255, 0.05);
 .trend-chart-area {
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
 .trend-divider {
   height: 1px;
-  background: $c-bar-track;
-  margin: 8px 0;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 4px 0;
   flex-shrink: 0;
 }
 </style>
