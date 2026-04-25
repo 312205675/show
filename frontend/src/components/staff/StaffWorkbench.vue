@@ -212,17 +212,17 @@ function statusClass(status: string) {
 }
 
 .stat-card {
-  background: #161B22;
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--staff-card-bg);
+  border: 1px solid var(--staff-border);
   border-radius: 12px;
   padding: 20px;
   display: flex;
   align-items: center;
   gap: 14px;
-  transition: all 0.2s;
+  transition: all 0.3s;
 
   &:hover {
-    border-color: rgba(96,165,250,0.2);
+    border-color: var(--staff-primary-border);
     transform: translateY(-1px);
   }
 }
@@ -252,7 +252,7 @@ function statusClass(status: string) {
 
 .stat-label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--staff-text-3);
   margin-top: 4px;
 }
 
@@ -264,8 +264,8 @@ function statusClass(status: string) {
   gap: 2px;
   flex-shrink: 0;
 
-  &.up { color: #22C55E; }
-  &.down { color: #EF4444; }
+  &.up { color: var(--staff-success); }
+  &.down { color: var(--staff-danger); }
 }
 
 .content-grid {
@@ -275,8 +275,8 @@ function statusClass(status: string) {
 }
 
 .panel {
-  background: #161B22;
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--staff-card-bg);
+  border: 1px solid var(--staff-border);
   border-radius: 12px;
   overflow: hidden;
 
@@ -288,7 +288,7 @@ function statusClass(status: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--staff-border);
 
   h3 {
     font-size: 14px;
@@ -310,12 +310,12 @@ function statusClass(status: string) {
   font-weight: 600;
   padding: 0 6px;
 
-  &.warn { background: rgba(245,158,11,0.15); color: #F59E0B; }
+  &.warn { background: var(--staff-warning-bg); color: var(--staff-warning); }
 }
 
 .link-more {
   font-size: 12px;
-  color: #60a5fa;
+  color: var(--staff-primary);
   text-decoration: none;
 
   &:hover { text-decoration: underline; }
@@ -341,7 +341,7 @@ function statusClass(status: string) {
 
 .todo-check {
   font-size: 14px;
-  color: #60a5fa;
+  color: var(--staff-primary);
   width: 18px;
   text-align: center;
 }
@@ -357,9 +357,9 @@ function statusClass(status: string) {
   border-radius: 4px;
   font-weight: 500;
 
-  &.high { background: rgba(239,68,68,0.15); color: #EF4444; }
-  &.medium { background: rgba(245,158,11,0.15); color: #F59E0B; }
-  &.low { background: rgba(96,165,250,0.12); color: #60a5fa; }
+  &.high { background: var(--staff-danger-bg); color: var(--staff-danger); }
+  &.medium { background: var(--staff-warning-bg); color: var(--staff-warning); }
+  &.low { background: var(--staff-primary-bg); color: var(--staff-primary); }
 }
 
 .mini-table {
@@ -368,11 +368,11 @@ function statusClass(status: string) {
 
   th {
     font-size: 11px;
-    color: #64748b;
+    color: var(--staff-text-3);
     font-weight: 500;
     text-align: left;
     padding: 10px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    border-bottom: 1px solid var(--staff-border);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -380,15 +380,15 @@ function statusClass(status: string) {
   td {
     font-size: 13px;
     padding: 10px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--staff-hover);
   }
 
-  tr:hover td { background: rgba(255,255,255,0.02); }
+  tr:hover td { background: var(--staff-hover); }
 }
 
-.text-primary { color: #60a5fa; font-weight: 500; }
-.text-money { color: #22C55E; font-weight: 600; }
-.text-muted { color: #64748b; font-size: 12px; }
+.text-primary { color: var(--staff-primary); font-weight: 500; }
+.text-money { color: var(--staff-success); font-weight: 600; }
+.text-muted { color: var(--staff-text-3); font-size: 12px; }
 
 .follow-item {
   display: flex;
@@ -401,14 +401,15 @@ function statusClass(status: string) {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: linear-gradient(135deg, rgba(96,165,250,0.3), rgba(167,139,250,0.3));
+  background: linear-gradient(135deg, var(--staff-brand-1), var(--staff-brand-2));
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: #fff;
   flex-shrink: 0;
+  opacity: 0.7;
 }
 
 .follow-info {
@@ -418,7 +419,7 @@ function statusClass(status: string) {
 }
 
 .follow-name { font-size: 13px; font-weight: 500; }
-.follow-project { font-size: 11px; color: #64748b; }
+.follow-project { font-size: 11px; color: var(--staff-text-3); }
 
 .follow-meta {
   display: flex;
@@ -432,23 +433,23 @@ function statusClass(status: string) {
   padding: 2px 6px;
   border-radius: 4px;
 
-  &.new { background: rgba(96,165,250,0.12); color: #60a5fa; }
-  &.visited { background: rgba(6,182,212,0.12); color: #06b6d4; }
-  &.intent { background: rgba(245,158,11,0.12); color: #F59E0B; }
-  &.subscribed { background: rgba(167,139,250,0.12); color: #a78bfa; }
-  &.closed { background: rgba(34,197,94,0.12); color: #22C55E; }
-  &.lost { background: rgba(239,68,68,0.12); color: #EF4444; }
+  &.new { background: var(--staff-primary-bg); color: var(--staff-primary); }
+  &.visited { background: var(--staff-cyan-bg); color: var(--staff-cyan); }
+  &.intent { background: var(--staff-warning-bg); color: var(--staff-warning); }
+  &.subscribed { background: var(--staff-purple-bg); color: var(--staff-purple); }
+  &.closed { background: var(--staff-success-bg); color: var(--staff-success); }
+  &.lost { background: var(--staff-danger-bg); color: var(--staff-danger); }
 }
 
 .follow-date {
   font-size: 11px;
-  color: #475569;
+  color: var(--staff-text-4);
 }
 
 .progress-bar {
   width: 80px;
   height: 6px;
-  background: rgba(255,255,255,0.06);
+  background: var(--staff-hover-3);
   border-radius: 3px;
   overflow: hidden;
   display: inline-block;
@@ -464,7 +465,7 @@ function statusClass(status: string) {
 
 .progress-text {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--staff-text-2);
 }
 
 .status-dot {
@@ -473,8 +474,8 @@ function statusClass(status: string) {
   height: 8px;
   border-radius: 50%;
 
-  &.green { background: #22C55E; }
-  &.yellow { background: #F59E0B; }
-  &.red { background: #EF4444; }
+  &.green { background: var(--staff-success); }
+  &.yellow { background: var(--staff-warning); }
+  &.red { background: var(--staff-danger); }
 }
 </style>

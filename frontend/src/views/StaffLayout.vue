@@ -48,6 +48,41 @@
         </div>
         <div class="header-right">
           <span class="header-time">{{ currentTime }}</span>
+
+          <!-- 主题切换器 -->
+          <div class="theme-switcher" ref="switcherRef">
+            <button class="theme-btn" @click="showThemePanel = !showThemePanel" :title="currentThemeLabel">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            </button>
+            <div class="theme-panel" v-if="showThemePanel" @click.stop>
+              <div class="theme-panel-title">切换皮肤</div>
+              <div class="theme-options">
+                <button
+                  v-for="opt in themeOptions"
+                  :key="opt.key"
+                  class="theme-option"
+                  :class="{ active: currentTheme === opt.key }"
+                  @click="setTheme(opt.key); showThemePanel = false"
+                >
+                  <div class="theme-preview" :style="{ background: opt.preview.bg }">
+                    <div class="theme-preview-accent" :style="{ background: opt.preview.accent }"></div>
+                  </div>
+                  <div class="theme-option-info">
+                    <span class="theme-option-label">{{ opt.label }}</span>
+                    <span class="theme-option-desc">{{ opt.desc }}</span>
+                  </div>
+                  <svg v-if="currentTheme === opt.key" class="theme-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="user-avatar">张</div>
         </div>
       </header>
@@ -59,11 +94,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useStaffTheme, themeOptions } from '@/composables/useStaffTheme'
 
 const route = useRoute()
+const { currentTheme, setTheme } = useStaffTheme()
 const sidebarCollapsed = ref(false)
+const showThemePanel = ref(false)
+const switcherRef = ref<HTMLElement | null>(null)
+
+const currentThemeLabel = computed(() => {
+  return themeOptions.find(o => o.key === currentTheme.value)?.label || '暗夜黑'
+})
 
 const navItems = [
   {
@@ -118,6 +161,15 @@ function updateTime() {
 }
 updateTime()
 setInterval(updateTime, 1000)
+
+// 点击外部关闭主题面板
+function handleClickOutside(e: MouseEvent) {
+  if (switcherRef.value && !switcherRef.value.contains(e.target as Node)) {
+    showThemePanel.value = false
+  }
+}
+onMounted(() => document.addEventListener('click', handleClickOutside))
+onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 </script>
 
 <style lang="scss" scoped>
@@ -125,20 +177,21 @@ setInterval(updateTime, 1000)
   display: flex;
   height: 100vh;
   width: 100vw;
-  background: #0a0e14;
-  color: #e2e8f0;
+  background: var(--staff-bg);
+  color: var(--staff-text);
   font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', -apple-system, sans-serif;
   overflow: hidden;
+  transition: background 0.4s ease, color 0.3s ease;
 }
 
 .sidebar {
   width: 240px;
   min-width: 240px;
-  background: #0d1117;
-  border-right: 1px solid rgba(255,255,255,0.06);
+  background: var(--staff-sidebar-bg);
+  border-right: 1px solid var(--staff-border);
   display: flex;
   flex-direction: column;
-  transition: width 0.3s ease, min-width 0.3s ease;
+  transition: width 0.3s ease, min-width 0.3s ease, background 0.4s ease;
   overflow: hidden;
 
   &.collapsed {
@@ -149,7 +202,7 @@ setInterval(updateTime, 1000)
 
 .sidebar-header {
   padding: 20px 16px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--staff-border);
 }
 
 .brand {
@@ -162,7 +215,7 @@ setInterval(updateTime, 1000)
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  background: linear-gradient(135deg, var(--staff-brand-1), var(--staff-brand-2));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -185,7 +238,7 @@ setInterval(updateTime, 1000)
 
 .brand-sub {
   font-size: 11px;
-  color: #64748b;
+  color: var(--staff-text-3);
   margin-top: 2px;
 }
 
@@ -193,7 +246,7 @@ setInterval(updateTime, 1000)
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  background: linear-gradient(135deg, var(--staff-brand-1), var(--staff-brand-2));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -215,7 +268,7 @@ setInterval(updateTime, 1000)
   gap: 12px;
   padding: 10px 12px;
   border-radius: 8px;
-  color: #94a3b8;
+  color: var(--staff-text-2);
   text-decoration: none;
   font-size: 14px;
   transition: all 0.2s;
@@ -223,16 +276,16 @@ setInterval(updateTime, 1000)
   white-space: nowrap;
 
   &:hover {
-    background: rgba(255,255,255,0.05);
-    color: #e2e8f0;
+    background: var(--staff-hover-2);
+    color: var(--staff-text);
   }
 
   &.active {
-    background: rgba(96, 165, 250, 0.12);
-    color: #60a5fa;
+    background: var(--staff-primary-bg);
+    color: var(--staff-primary);
     font-weight: 500;
 
-    .nav-icon { color: #60a5fa; }
+    .nav-icon { color: var(--staff-primary); }
   }
 }
 
@@ -251,7 +304,7 @@ setInterval(updateTime, 1000)
 
 .sidebar-footer {
   padding: 12px 8px 16px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--staff-border);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -263,16 +316,16 @@ setInterval(updateTime, 1000)
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--staff-hover-4);
+  border: 1px solid var(--staff-border);
   border-radius: 8px;
-  color: #64748b;
+  color: var(--staff-text-3);
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: rgba(255,255,255,0.08);
-    color: #e2e8f0;
+    background: var(--staff-hover-3);
+    color: var(--staff-text);
   }
 }
 
@@ -282,14 +335,14 @@ setInterval(updateTime, 1000)
   gap: 8px;
   padding: 8px 12px;
   border-radius: 8px;
-  color: #64748b;
+  color: var(--staff-text-3);
   text-decoration: none;
   font-size: 13px;
   transition: all 0.2s;
 
   &:hover {
-    background: rgba(255,255,255,0.05);
-    color: #e2e8f0;
+    background: var(--staff-hover-2);
+    color: var(--staff-text);
   }
 }
 
@@ -306,10 +359,11 @@ setInterval(updateTime, 1000)
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  background: rgba(13, 17, 23, 0.8);
+  border-bottom: 1px solid var(--staff-border);
+  background: var(--staff-header-bg);
   backdrop-filter: blur(12px);
   flex-shrink: 0;
+  transition: background 0.4s ease;
 }
 
 .header-left {
@@ -325,7 +379,7 @@ setInterval(updateTime, 1000)
 
 .page-breadcrumb {
   font-size: 11px;
-  color: #475569;
+  color: var(--staff-text-4);
 }
 
 .header-right {
@@ -336,15 +390,151 @@ setInterval(updateTime, 1000)
 
 .header-time {
   font-size: 12px;
-  color: #64748b;
+  color: var(--staff-text-3);
   font-family: 'JetBrains Mono', monospace;
 }
 
+// ===== 主题切换器 =====
+.theme-switcher {
+  position: relative;
+}
+
+.theme-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--staff-hover-4);
+  border: 1px solid var(--staff-border);
+  color: var(--staff-text-2);
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: var(--staff-hover-3);
+    color: var(--staff-primary);
+    border-color: var(--staff-primary-border);
+  }
+}
+
+.theme-panel {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  width: 260px;
+  background: var(--staff-card-bg);
+  border: 1px solid var(--staff-border);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: var(--staff-shadow);
+  z-index: 100;
+  animation: panelIn 0.2s ease-out;
+}
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.theme-panel-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--staff-text-3);
+  padding: 4px 4px 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.theme-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  color: var(--staff-text);
+
+  &:hover {
+    background: var(--staff-hover-2);
+  }
+
+  &.active {
+    background: var(--staff-primary-bg);
+    border-color: var(--staff-primary-border);
+  }
+}
+
+.theme-preview {
+  width: 36px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--staff-border);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 40%;
+    background: var(--staff-card-bg);
+    border-top: 1px solid var(--staff-border);
+  }
+}
+
+.theme-preview-accent {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 8px;
+  height: 3px;
+  border-radius: 1px;
+  z-index: 1;
+}
+
+.theme-option-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-option-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.theme-option-desc {
+  font-size: 11px;
+  color: var(--staff-text-3);
+  margin-top: 1px;
+}
+
+.theme-check {
+  color: var(--staff-primary);
+  flex-shrink: 0;
+}
+
+// ===== 用户头像 =====
 .user-avatar {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  background: linear-gradient(135deg, var(--staff-brand-1), var(--staff-brand-2));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -352,16 +542,19 @@ setInterval(updateTime, 1000)
   font-weight: 600;
   color: #fff;
   cursor: pointer;
+  transition: transform 0.2s;
+  &:hover { transform: scale(1.05); }
 }
 
 .staff-content {
   flex: 1;
   padding: 24px;
   overflow-y: auto;
-  background: #0a0e14;
+  background: var(--staff-bg);
+  transition: background 0.4s ease;
 
   &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+  &::-webkit-scrollbar-track { background: var(--staff-scrollbar-track); }
+  &::-webkit-scrollbar-thumb { background: var(--staff-scrollbar); border-radius: 3px; }
 }
 </style>
