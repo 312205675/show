@@ -39,7 +39,7 @@ const { playTabSwitchSound } = useSound()
 interface PageItem {
   key: string
   label: string
-  icon?: string
+  icon: string
   component?: unknown
 }
 

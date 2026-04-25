@@ -1,5 +1,8 @@
 <template>
   <div class="page channel-page">
+    <!-- Period Selector -->
+    <PeriodSelector v-model="localPeriod" />
+
     <!-- 渠道总览 KPI -->
     <div class="channel-summary">
       <div class="sum-item highlight">
@@ -128,17 +131,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { generateChannels, type ChannelItem } from '@/utils/pageMockData'
 import Bar3DChart from '@/components/charts/Bar3DChart.vue'
 import Scatter3DChart from '@/components/charts/Scatter3DChart.vue'
 import ChartWrapper from '@/components/common/ChartWrapper.vue'
+import PeriodSelector from '@/components/common/PeriodSelector.vue'
 
 const props = withDefaults(defineProps<{
   viewMode?: '2d' | '3d'
+  period?: 'day' | 'week' | 'month' | 'year'
 }>(), {
   viewMode: '2d',
+  period: 'month',
 })
+
+const localPeriod = ref<'day' | 'week' | 'month' | 'year'>(props.period || 'month')
+watch(() => props.period, v => { if (v) localPeriod.value = v })
 
 const channels = ref<ChannelItem[]>(generateChannels())
 

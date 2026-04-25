@@ -1,5 +1,8 @@
 <template>
   <div class="page region-page">
+    <!-- Period Selector -->
+    <PeriodSelector v-model="localPeriod" />
+
     <!-- 2D Mode -->
     <template v-if="viewMode !== '3d'">
       <!-- View mode toggle -->
@@ -182,13 +185,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { generateRegions, type RegionItem } from '@/utils/pageMockData'
 import Bar3DChart from '@/components/charts/Bar3DChart.vue'
 import Scatter3DChart from '@/components/charts/Scatter3DChart.vue'
 import ChinaMap from '@/components/charts/ChinaMap.vue'
+import PeriodSelector from '@/components/common/PeriodSelector.vue'
 
-withDefaults(defineProps<{ viewMode?: '2d' | '3d' }>(), { viewMode: '2d' })
+const props = withDefaults(defineProps<{ viewMode?: '2d' | '3d'; period?: 'day' | 'week' | 'month' | 'year' }>(), { viewMode: '2d', period: 'month' })
+
+const localPeriod = ref<'day' | 'week' | 'month' | 'year'>(props.period || 'month')
+watch(() => props.period, v => { if (v) localPeriod.value = v })
 
 const viewMode2D = ref<'list' | 'map'>('map')
 const regions = ref<RegionItem[]>(generateRegions())

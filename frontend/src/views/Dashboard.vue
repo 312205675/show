@@ -52,68 +52,68 @@
 
             <!-- ===== TOP KPI BANNER ===== -->
             <section class="kpi-banner">
-              <div class="kpi-card hero" :class="depletionClass" @click="openKPIDetail({ label: '去化率', value: store.coreKPI.depletionRate, color: depletionColor })">
+              <div class="kpi-card hero" :class="depletionClass" @click="openKPIDetail({ label: '去化率', value: adjustedKPI.depletionRate, color: depletionColor })">
                 <div class="kpi-label">去化率</div>
                 <div class="kpi-main">
-                  <DigitalFlipper :value="store.coreKPI.depletionRate" :decimals="1" :size="38" :color="depletionColor" />
+                  <DigitalFlipper :value="adjustedKPI.depletionRate" :decimals="1" :size="38" :color="depletionColor" />
                   <span class="kpi-unit" :style="{ color: depletionColor }">%</span>
                 </div>
-                <div class="kpi-trend" :class="store.coreKPI.momGrowth >= 0 ? 'up' : 'down'">
-                  {{ store.coreKPI.momGrowth >= 0 ? '▲' : '▼' }} {{ Math.abs(store.coreKPI.momGrowth).toFixed(1) }}%
+                <div class="kpi-trend" :class="adjustedKPI.momGrowth >= 0 ? 'up' : 'down'">
+                  {{ adjustedKPI.momGrowth >= 0 ? '▲' : '▼' }} {{ Math.abs(adjustedKPI.momGrowth).toFixed(1) }}%
                 </div>
-                <div class="kpi-bar"><div class="kpi-bar-fill" :style="{ width: store.coreKPI.depletionRate + '%', background: depletionColor }" /></div>
+                <div class="kpi-bar"><div class="kpi-bar-fill" :style="{ width: adjustedKPI.depletionRate + '%', background: depletionColor }" /></div>
               </div>
 
-              <div class="kpi-card primary" @click="openKPIDetail({ label: '累计销售额', value: store.coreKPI.totalSales, color: 'var(--primary)' })">
+              <div class="kpi-card primary" @click="openKPIDetail({ label: '累计销售额', value: adjustedKPI.totalSales, color: 'var(--primary)' })">
                 <div class="kpi-label">累计销售额</div>
                 <div class="kpi-main">
-                  <DigitalFlipper :value="store.coreKPI.totalSales" :decimals="1" :size="34" color="var(--primary)" />
+                  <DigitalFlipper :value="adjustedKPI.totalSales" :decimals="1" :size="34" color="var(--primary)" />
                   <span class="kpi-unit" style="color: var(--primary)">亿</span>
                 </div>
               </div>
 
-              <div class="kpi-card" :class="returnClass" @click="openKPIDetail({ label: '总回款率', value: store.coreKPI.returnRate, color: returnColor })">
+              <div class="kpi-card" :class="returnClass" @click="openKPIDetail({ label: '总回款率', value: adjustedKPI.returnRate, color: returnColor })">
                 <div class="kpi-label">总回款率</div>
                 <div class="kpi-main">
-                  <DigitalFlipper :value="store.coreKPI.returnRate" :decimals="1" :size="34" :color="returnColor" />
+                  <DigitalFlipper :value="adjustedKPI.returnRate" :decimals="1" :size="34" :color="returnColor" />
                   <span class="kpi-unit" :style="{ color: returnColor }">%</span>
                 </div>
-                <div class="kpi-bar"><div class="kpi-bar-fill" :style="{ width: store.coreKPI.returnRate + '%', background: returnColor }" /></div>
+                <div class="kpi-bar"><div class="kpi-bar-fill" :style="{ width: adjustedKPI.returnRate + '%', background: returnColor }" /></div>
               </div>
 
-              <div class="kpi-card" :class="inventoryClass" @click="openKPIDetail({ label: '总库存套数', value: store.coreKPI.inventoryUnits, color: inventoryColor })">
+              <div class="kpi-card" :class="inventoryClass" @click="openKPIDetail({ label: '总库存套数', value: adjustedKPI.inventoryUnits, color: inventoryColor })">
                 <div class="kpi-label">总库存</div>
                 <div class="kpi-main">
-                  <DigitalFlipper :value="store.coreKPI.inventoryUnits" :decimals="0" :size="34" :color="inventoryColor" />
+                  <DigitalFlipper :value="adjustedKPI.inventoryUnits" :decimals="0" :size="34" :color="inventoryColor" />
                   <span class="kpi-unit" :style="{ color: inventoryColor }">套</span>
                 </div>
-                <div class="kpi-sub">货值 {{ store.coreKPI.inventoryValue }}亿</div>
+                <div class="kpi-sub">货值 {{ adjustedKPI.inventoryValue }}亿</div>
               </div>
 
-              <div class="kpi-card" :class="store.coreKPI.cashFlow >= 10 ? 'healthy' : store.coreKPI.cashFlow >= 5 ? 'warning' : 'danger'" @click="openKPIDetail({ label: '现金流', value: store.coreKPI.cashFlow, color: store.coreKPI.cashFlow >= 10 ? 'var(--success)' : store.coreKPI.cashFlow >= 5 ? 'var(--warning)' : 'var(--danger)' })">
+              <div class="kpi-card" :class="adjustedKPI.cashFlow >= 10 ? 'healthy' : adjustedKPI.cashFlow >= 5 ? 'warning' : 'danger'" @click="openKPIDetail({ label: '现金流', value: adjustedKPI.cashFlow, color: adjustedKPI.cashFlow >= 10 ? 'var(--success)' : adjustedKPI.cashFlow >= 5 ? 'var(--warning)' : 'var(--danger)' })">
                 <div class="kpi-label">现金流</div>
                 <div class="kpi-main">
-                  <DigitalFlipper :value="store.coreKPI.cashFlow" :decimals="1" :size="34" :color="store.coreKPI.cashFlow >= 10 ? 'var(--success)' : store.coreKPI.cashFlow >= 5 ? 'var(--warning)' : 'var(--danger)'" />
-                  <span class="kpi-unit" :style="{ color: store.coreKPI.cashFlow >= 10 ? 'var(--success)' : store.coreKPI.cashFlow >= 5 ? 'var(--warning)' : 'var(--danger)' }">亿</span>
+                  <DigitalFlipper :value="adjustedKPI.cashFlow" :decimals="1" :size="34" :color="adjustedKPI.cashFlow >= 10 ? 'var(--success)' : adjustedKPI.cashFlow >= 5 ? 'var(--warning)' : 'var(--danger)'" />
+                  <span class="kpi-unit" :style="{ color: adjustedKPI.cashFlow >= 10 ? 'var(--success)' : adjustedKPI.cashFlow >= 5 ? 'var(--warning)' : 'var(--danger)' }">亿</span>
                 </div>
               </div>
 
-              <div class="kpi-card" :class="store.coreKPI.profitMargin >= 20 ? 'healthy' : store.coreKPI.profitMargin >= 15 ? 'warning' : 'danger'" @click="openKPIDetail({ label: '利润率', value: store.coreKPI.profitMargin, color: store.coreKPI.profitMargin >= 20 ? 'var(--success)' : store.coreKPI.profitMargin >= 15 ? 'var(--warning)' : 'var(--danger)' })">
+              <div class="kpi-card" :class="adjustedKPI.profitMargin >= 20 ? 'healthy' : adjustedKPI.profitMargin >= 15 ? 'warning' : 'danger'" @click="openKPIDetail({ label: '利润率', value: adjustedKPI.profitMargin, color: adjustedKPI.profitMargin >= 20 ? 'var(--success)' : adjustedKPI.profitMargin >= 15 ? 'var(--warning)' : 'var(--danger)' })">
                 <div class="kpi-label">利润率</div>
                 <div class="kpi-main">
-                  <DigitalFlipper :value="store.coreKPI.profitMargin" :decimals="1" :size="34" :color="store.coreKPI.profitMargin >= 20 ? 'var(--success)' : store.coreKPI.profitMargin >= 15 ? 'var(--warning)' : 'var(--danger)'" />
-                  <span class="kpi-unit" :style="{ color: store.coreKPI.profitMargin >= 20 ? 'var(--success)' : store.coreKPI.profitMargin >= 15 ? 'var(--warning)' : 'var(--danger)' }">%</span>
+                  <DigitalFlipper :value="adjustedKPI.profitMargin" :decimals="1" :size="34" :color="adjustedKPI.profitMargin >= 20 ? 'var(--success)' : adjustedKPI.profitMargin >= 15 ? 'var(--warning)' : 'var(--danger)'" />
+                  <span class="kpi-unit" :style="{ color: adjustedKPI.profitMargin >= 20 ? 'var(--success)' : adjustedKPI.profitMargin >= 15 ? 'var(--warning)' : 'var(--danger)' }">%</span>
                 </div>
               </div>
 
-              <div class="kpi-card normal" @click="openKPIDetail({ label: '环比增长', value: store.coreKPI.momGrowth, color: growthColor })">
+              <div class="kpi-card normal" @click="openKPIDetail({ label: '环比增长', value: adjustedKPI.momGrowth, color: growthColor })">
                 <div class="kpi-label">环比增长</div>
                 <div class="kpi-main">
-                  <DigitalFlipper :value="store.coreKPI.momGrowth" :decimals="1" :size="34" :color="growthColor" />
+                  <DigitalFlipper :value="adjustedKPI.momGrowth" :decimals="1" :size="34" :color="growthColor" />
                   <span class="kpi-unit" :style="{ color: growthColor }">%</span>
                 </div>
-                <div class="kpi-trend" :class="store.coreKPI.momGrowth >= 0 ? 'up' : 'down'">
-                  {{ store.coreKPI.momGrowth >= 0 ? '▲' : '▼' }}
+                <div class="kpi-trend" :class="adjustedKPI.momGrowth >= 0 ? 'up' : 'down'">
+                  {{ adjustedKPI.momGrowth >= 0 ? '▲' : '▼' }}
                 </div>
               </div>
 
@@ -319,66 +319,92 @@
                 </div>
               </div>
 
-              <!-- ===== RIGHT COLUMN: Hot Properties + Bar + Gauge + Prediction ===== -->
+              <!-- ===== RIGHT COLUMN: Tab Switch (Hot Props / Sales / Gauges / Decision) ===== -->
               <div class="exec-right">
-                <!-- Hot Properties with Views -->
-                <div class="panel-card hot-props-card">
-                  <div class="panel-toolbar">
-                    <span class="panel-title"><span class="pt-bar" />热门楼盘<span class="ph-count">浏览量排行</span></span>
-                    <span class="hot-fire">🔥</span>
-                  </div>
-                  <div class="panel-body hot-body">
-                    <div v-for="(h, i) in store.hotProperties.slice(0, 5)" :key="h.name" class="hot-row">
-                      <span class="hot-rank" :class="{ top: i < 3 }">{{ i + 1 }}</span>
-                      <div class="hot-info">
-                        <span class="hot-name">{{ h.name.replace('城发投·', '') }}</span>
-                        <span class="hot-tag" :style="{ background: h.tagColor + '20', color: h.tagColor }">{{ h.tag }}</span>
-                      </div>
-                      <div class="hot-views">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                        {{ (h.views / 1000).toFixed(1) }}k
-                      </div>
-                      <span class="hot-growth" :class="h.viewGrowth >= 0 ? 'up' : 'down'">{{ h.viewGrowth >= 0 ? '+' : '' }}{{ h.viewGrowth }}%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="panel-card" :class="{ 'is-fullscreen': fsKey === 'bar' }">
-                  <div class="panel-toolbar">
-                    <span class="panel-title"><span class="pt-bar" />项目销售对比</span>
-                    <button class="fs-btn" @click="toggleFs('bar')" :title="fsKey === 'bar' ? '退出全屏' : '全屏'">
-                      <svg v-if="fsKey !== 'bar'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
-                      <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6m0 0v6m0-6H4m6 0L4 20M20 10h-6m0 0V4m0 6h6m-6 0L20 4"/></svg>
+                <div class="right-stack-container">
+                  <!-- Right tab bar -->
+                  <div class="stack-tabs">
+                    <button class="stack-tab" :class="{ active: rightActiveTab === 'hot' }" @click="rightActiveTab = 'hot'">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 8v4l3 3"/></svg>
+                      楼盘
+                    </button>
+                    <button class="stack-tab" :class="{ active: rightActiveTab === 'bar' }" @click="rightActiveTab = 'bar'">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>
+                      对比
+                    </button>
+                    <button class="stack-tab" :class="{ active: rightActiveTab === 'gauges' }" @click="rightActiveTab = 'gauges'">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                      指标
+                    </button>
+                    <button class="stack-tab" :class="{ active: rightActiveTab === 'decision' }" @click="rightActiveTab = 'decision'">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                      决策
                     </button>
                   </div>
-                  <div class="panel-body">
-                    <BarComparison
-                      :projects="barProjects"
-                      :target="barTarget"
-                      :actual="barActual"
-                    />
-                  </div>
-                </div>
+                  <!-- Stacked cards -->
+                  <div class="stack-cards">
+                    <!-- Hot Properties -->
+                    <div class="panel-card stack-card" :class="{ 'stack-active': rightActiveTab === 'hot', 'stack-behind-1': rightActiveTab !== 'hot' }">
+                      <div class="panel-toolbar">
+                        <span class="panel-title"><span class="pt-bar" />热门楼盘<span class="ph-count">浏览量排行</span></span>
+                        <span class="hot-fire">🔥</span>
+                      </div>
+                      <div class="panel-body hot-body">
+                        <div v-for="(h, i) in store.hotProperties.slice(0, 5)" :key="h.name" class="hot-row">
+                          <span class="hot-rank" :class="{ top: i < 3 }">{{ i + 1 }}</span>
+                          <div class="hot-info">
+                            <span class="hot-name">{{ h.name.replace('城发投·', '') }}</span>
+                            <span class="hot-tag" :style="{ background: h.tagColor + '20', color: h.tagColor }">{{ h.tag }}</span>
+                          </div>
+                          <div class="hot-views">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            {{ (h.views / 1000).toFixed(1) }}k
+                          </div>
+                          <span class="hot-growth" :class="h.viewGrowth >= 0 ? 'up' : 'down'">{{ h.viewGrowth >= 0 ? '+' : '' }}{{ h.viewGrowth }}%</span>
+                        </div>
+                      </div>
+                    </div>
 
-                <div class="panel-card" :class="{ 'is-fullscreen': fsKey === 'gauges' }">
-                  <div class="panel-toolbar">
-                    <span class="panel-title"><span class="pt-bar" />核心指标仪表</span>
-                    <button class="fs-btn" @click="toggleFs('gauges')" :title="fsKey === 'gauges' ? '退出全屏' : '全屏'">
-                      <svg v-if="fsKey !== 'gauges'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
-                      <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6m0 0v6m0-6H4m6 0L4 20M20 10h-6m0 0V4m0 6h6m-6 0L20 4"/></svg>
-                    </button>
-                  </div>
-                  <div class="panel-body gauges-body">
-                    <div class="gauges-grid">
-                      <GaugeChart :value="store.coreKPI.depletionRate" label="去化率" />
-                      <GaugeChart :value="store.coreKPI.returnRate" label="回款率" />
+                    <!-- Sales Comparison -->
+                    <div class="panel-card stack-card" :class="{ 'stack-active': rightActiveTab === 'bar', 'stack-behind-1': rightActiveTab !== 'bar', 'is-fullscreen': fsKey === 'bar' }">
+                      <div class="panel-toolbar">
+                        <span class="panel-title"><span class="pt-bar" />项目销售对比</span>
+                        <button class="fs-btn" @click="toggleFs('bar')" :title="fsKey === 'bar' ? '退出全屏' : '全屏'">
+                          <svg v-if="fsKey !== 'bar'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                          <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6m0 0v6m0-6H4m6 0L4 20M20 10h-6m0 0V4m0 6h6m-6 0L20 4"/></svg>
+                        </button>
+                      </div>
+                      <div class="panel-body">
+                        <BarComparison
+                          :projects="barProjects"
+                          :target="barTarget"
+                          :actual="barActual"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Core Gauges -->
+                    <div class="panel-card stack-card" :class="{ 'stack-active': rightActiveTab === 'gauges', 'stack-behind-1': rightActiveTab !== 'gauges', 'is-fullscreen': fsKey === 'gauges' }">
+                      <div class="panel-toolbar">
+                        <span class="panel-title"><span class="pt-bar" />核心指标仪表</span>
+                        <button class="fs-btn" @click="toggleFs('gauges')" :title="fsKey === 'gauges' ? '退出全屏' : '全屏'">
+                          <svg v-if="fsKey !== 'gauges'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                          <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h6m0 0v6m0-6H4m6 0L4 20M20 10h-6m0 0V4m0 6h6m-6 0L20 4"/></svg>
+                        </button>
+                      </div>
+                      <div class="panel-body gauges-body">
+                        <div class="gauges-grid">
+                          <GaugeChart :value="store.coreKPI.depletionRate" label="去化率" />
+                          <GaugeChart :value="store.coreKPI.returnRate" label="回款率" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Decision Recommendations -->
+                    <div class="panel-card stack-card" :class="{ 'stack-active': rightActiveTab === 'decision', 'stack-behind-1': rightActiveTab !== 'decision' }">
+                      <DecisionRecommendations :items="store.recommendations" @select="openRecommendation" />
                     </div>
                   </div>
-                </div>
-
-                <!-- Decision Recommendations Module -->
-                <div class="panel-card decision-card">
-                  <DecisionRecommendations :items="store.recommendations" @select="openRecommendation" />
                 </div>
               </div>
             </div>
@@ -456,7 +482,7 @@
         <!-- Page 1-6: Drill-down Pages -->
         <div v-for="page in drillPages" :key="page.key" class="page-slide">
           <div class="slide-content drill-layout">
-            <component :is="page.component" :view-mode="themeStore.viewMode" />
+            <component :is="page.component" :view-mode="themeStore.viewMode" :period="period" />
           </div>
         </div>
       </div>
@@ -516,6 +542,15 @@
         <div class="present-progress-bar">
           <div class="present-progress-fill" :style="{ width: presentProgress + '%' }" />
         </div>
+
+        <!-- Floating navigation arrows -->
+        <button v-if="currentPage > 0" class="present-nav-arrow present-nav-left" @click="currentPage--; if (presentAutoEnabled) { presentProgress = 0; startPresentAutoRotate() }">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button v-if="currentPage < pages.length - 1" class="present-nav-arrow present-nav-right" @click="currentPage++; if (presentAutoEnabled) { presentProgress = 0; startPresentAutoRotate() }">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
         <div class="present-hint">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 18 15 12 9 6"/></svg>
@@ -613,6 +648,7 @@ const showSwipeHint = ref(true)
 // Fullscreen state
 const fsKey = ref<string | null>(null)
 const leftActiveTab = ref<'trends' | 'pie' | 'areamap' | 'radar'>('trends')
+const rightActiveTab = ref<'hot' | 'bar' | 'gauges' | 'decision'>('hot')
 
 // Presentation Mode
 const presentMode = ref(false)
@@ -624,6 +660,10 @@ const PRESENT_INTERVAL = 15000 // 15 seconds per page
 // Period selector
 const period = ref<'day' | 'week' | 'month' | 'year'>('month')
 const periodLabels: Record<string, string> = { day: '日', week: '周', month: '月', year: '年' }
+const periodMultiplier = computed(() => {
+  const m: Record<string, number> = { day: 0.03, week: 0.23, month: 1, year: 12 }
+  return m[period.value] ?? 1
+})
 
 // Risk carousel
 const riskCarouselIdx = ref(0)
@@ -727,6 +767,22 @@ const inventoryColor = computed(() => store.coreKPI.inventoryUnits > 3500 ? 'var
 const inventoryClass = computed(() => store.coreKPI.inventoryUnits > 3500 ? 'danger' : store.coreKPI.inventoryUnits > 3000 ? 'warning' : 'healthy')
 const growthColor = computed(() => store.coreKPI.momGrowth >= 5 ? 'var(--success)' : store.coreKPI.momGrowth >= 0 ? 'var(--text-caption)' : 'var(--danger)')
 const growthClass = computed(() => store.coreKPI.momGrowth >= 5 ? 'healthy' : store.coreKPI.momGrowth >= 0 ? 'normal' : 'danger')
+
+// Period-adjusted KPI values
+const adjustedKPI = computed(() => {
+  const kpi = store.coreKPI
+  const m = periodMultiplier.value
+  return {
+    depletionRate: kpi.depletionRate,
+    totalSales: Number((kpi.totalSales * m).toFixed(1)),
+    returnRate: kpi.returnRate,
+    inventoryUnits: Math.round(kpi.inventoryUnits / m),
+    inventoryValue: Number((kpi.inventoryValue / m).toFixed(1)),
+    cashFlow: Number((kpi.cashFlow * m).toFixed(1)),
+    profitMargin: kpi.profitMargin,
+    momGrowth: Number((kpi.momGrowth * (m < 1 ? 3 : m > 1 ? 0.5 : 1)).toFixed(1)),
+  }
+})
 
 // Project grouping by health
 const redProjects = computed(() => store.projectMatrix.filter(p => p.status === 'red').sort((a, b) => a.depletionRate - b.depletionRate))
@@ -1202,18 +1258,7 @@ onUnmounted(() => {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  perspective: 1200px;
-
-  // 3D depth layering for right panels
-  .panel-card:nth-child(1) { transform: perspective(1200px) translateZ(0px); }
-  .panel-card:nth-child(2) { transform: perspective(1200px) translateZ(5px); }
-  .panel-card:nth-child(3) { transform: perspective(1200px) translateZ(10px); }
-  .panel-card:nth-child(4) { transform: perspective(1200px) translateZ(15px); }
-
-  .panel-card:hover {
-    transform: perspective(800px) translateZ(30px) scale(1.03) rotateX(1deg);
-  }
+  min-height: 0;
 }
 
 // ===== Panel Card (reusable) — with enhanced 3D depth =====
@@ -1285,10 +1330,10 @@ onUnmounted(() => {
 
 .exec-left .panel-card { flex: 1; min-height: 0; }
 .exec-center .panel-card { height: 100%; }
-.exec-right .panel-card { flex: 1; min-height: 0; }
 
 // ===== 3D Stacked Left Panels =====
 .left-stack-container { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.right-stack-container { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 
 .stack-tabs {
   display: flex;
@@ -1839,7 +1884,6 @@ onUnmounted(() => {
 .pred-3d-pred { font-weight: 600; color: var(--text-body, #cbd5e1); &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } }
 
 // ===== Hot Properties =====
-.hot-props-card { flex-shrink: 0; max-height: 210px; }
 .hot-fire { font-size: 12px; }
 .hot-body { padding: 4px 10px 8px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
 .hot-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; transition: all 0.2s; &:hover { background: var(--surface, rgba(255,255,255,0.03)); border-radius: 4px; } }
@@ -1851,7 +1895,6 @@ onUnmounted(() => {
 .hot-growth { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } }
 
 // ===== Decision Recommendations =====
-.decision-card { flex-shrink: 0; max-height: 300px; }
 
 // ===== Recommendation Detail Modal =====
 .rec-detail {
@@ -2053,6 +2096,36 @@ onUnmounted(() => {
   transition: width 0.1s linear;
   border-radius: 0 2px 2px 0;
 }
+
+// ===== Presentation Nav Arrows =====
+.present-nav-arrow {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 80px;
+  border: none;
+  background: rgba(96, 165, 250, 0.08);
+  backdrop-filter: blur(8px);
+  color: rgba(96, 165, 250, 0.5);
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  border-radius: 12px;
+  z-index: 510;
+
+  &:hover {
+    background: rgba(96, 165, 250, 0.18);
+    color: rgba(96, 165, 250, 0.9);
+    width: 56px;
+  }
+}
+
+.present-nav-left { left: 16px; border-radius: 0 12px 12px 0; &:hover { border-radius: 0 14px 14px 0; } }
+.present-nav-right { right: 16px; border-radius: 12px 0 0 12px; &:hover { border-radius: 14px 0 0 14px; } }
 
 .present-hint {
   position: fixed;

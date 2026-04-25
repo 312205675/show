@@ -1,5 +1,8 @@
 <template>
   <div class="funnel-page">
+    <!-- Period Selector -->
+    <PeriodSelector v-model="localPeriod" />
+
     <!-- 2D Mode -->
     <template v-if="viewMode !== '3d'">
       <!-- 全集团漏斗 -->
@@ -112,12 +115,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { generateFunnel, generateFunnelCompare } from '@/utils/pageMockData'
 import Funnel3D from '@/components/charts/Funnel3D.vue'
 import Bar3DChart from '@/components/charts/Bar3DChart.vue'
+import PeriodSelector from '@/components/common/PeriodSelector.vue'
 
-withDefaults(defineProps<{ viewMode?: '2d' | '3d' }>(), { viewMode: '2d' })
+const props = withDefaults(defineProps<{ viewMode?: '2d' | '3d'; period?: 'day' | 'week' | 'month' | 'year' }>(), { viewMode: '2d', period: 'month' })
+
+const localPeriod = ref<'day' | 'week' | 'month' | 'year'>(props.period || 'month')
+watch(() => props.period, v => { if (v) localPeriod.value = v })
 
 const funnel = ref(generateFunnel())
 const funnelCompare = ref(generateFunnelCompare())

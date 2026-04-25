@@ -94,7 +94,10 @@ import type { ProjectItem } from '@/utils/mockData'
 
 const props = defineProps<{ project: ProjectItem }>()
 
-const maxDeal = computed(() => Math.max(...props.project.monthlyDeals))
+const maxDeal = computed(() => {
+  const deals = props.project.monthlyDeals
+  return deals?.length ? Math.max(...deals) : 1
+})
 
 const monthLabels = ['1月', '2月', '3月', '4月', '5月', '6月']
 </script>

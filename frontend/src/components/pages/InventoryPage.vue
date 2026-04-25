@@ -1,5 +1,8 @@
 <template>
   <div class="page inventory-page">
+    <!-- Period Selector -->
+    <PeriodSelector v-model="localPeriod" />
+
     <!-- 2D Mode -->
     <template v-if="viewMode !== '3d'">
       <!-- 库存总览 KPI - 醒目大字体 -->
@@ -138,14 +141,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { generateInventory, generateSlowMoving, type InventoryItem } from '@/utils/pageMockData'
 import Bar3DChart from '@/components/charts/Bar3DChart.vue'
 import Scatter3DChart from '@/components/charts/Scatter3DChart.vue'
+import PeriodSelector from '@/components/common/PeriodSelector.vue'
 
-withDefaults(defineProps<{ viewMode?: '2d' | '3d' }>(), { viewMode: '2d' })
+const props = withDefaults(defineProps<{ viewMode?: '2d' | '3d'; period?: 'day' | 'week' | 'month' | 'year' }>(), { viewMode: '2d', period: 'month' })
+
+const localPeriod = ref<'day' | 'week' | 'month' | 'year'>(props.period || 'month')
+watch(() => props.period, v => { if (v) localPeriod.value = v })
 
 const inventory = ref<InventoryItem[]>(generateInventory())
+
+// Props already declared above as `props`
 const slowItems = ref(generateSlowMoving())
 
 const totalUnsold = computed(() => inventory.value.reduce((s, i) => s + i.unsoldUnits, 0))
