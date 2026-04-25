@@ -21,7 +21,7 @@
       <template v-if="viewMode2D === 'map'">
         <div class="map-container card">
           <div class="map-chart-area">
-            <ChinaMap :points="mapPoints" :regions="mapRegions" :zoom-level="1.15"
+            <ChinaMap :points="mapPoints" :regions="mapRegions" :zoom-level="1.8"
               map-geo-url="https://geo.datav.aliyun.com/areas_v3/bound/130100_full.json"
               map-name="shijiazhuang"
               :center="[114.5, 38.04]"
@@ -215,7 +215,9 @@ const mapPoints = computed(() => {
   return regions.value.map(r => ({
     name: `石家庄·${r.name}`,
     value: [...(coords[r.name] || [114.5, 38.0]), r.depletionRate],
-    itemStyle: { color: r.depletionRate >= 65 ? '#22C55E' : r.depletionRate >= 50 ? '#F59E0B' : '#EF4444' },
+    itemStyle: { color: r.depletionRate >= 65 ? '#22C55E' : r.depletionRate >= 50 ? '#F59E0B' : '#EF4444', borderColor: r.depletionRate >= 65 ? '#22C55E' : r.depletionRate >= 50 ? '#F59E0B' : '#EF4444', borderWidth: 2 },
+    symbolSize: 28,
+    label: { show: true, formatter: r.name, fontSize: 11, fontWeight: 700, color: '#e2e8f0', position: 'top' as const, textBorderColor: 'rgba(0,0,0,0.6)', textBorderWidth: 2 },
   }))
 })
 

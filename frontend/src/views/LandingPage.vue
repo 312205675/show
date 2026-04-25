@@ -90,7 +90,7 @@
           <div class="card-border-anim" />
           <div class="card-content">
             <div class="card-icon-wrap">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <rect x="3" y="3" width="7" height="7" rx="1" />
                 <rect x="14" y="3" width="7" height="7" rx="1" />
                 <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -108,7 +108,66 @@
               </div>
             </div>
             <div class="card-arrow">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+        </router-link>
+
+        <!-- BigData Entry -->
+        <router-link to="/bigdata" class="entry-card bigdata-card">
+          <div class="card-glow bigdata-glow" />
+          <div class="card-border-anim" />
+          <div class="card-content">
+            <div class="card-icon-wrap bigdata-icon-wrap">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+              </svg>
+            </div>
+            <div class="card-info">
+              <h2 class="card-title">大数据平台</h2>
+              <p class="card-desc">多源数据汇聚 · 数据湖仓 · 实时计算引擎</p>
+              <div class="card-tags">
+                <span class="tag">Lakehouse</span>
+                <span class="tag">Flink</span>
+                <span class="tag">ClickHouse</span>
+                <span class="tag">数据治理</span>
+              </div>
+            </div>
+            <div class="card-arrow">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+        </router-link>
+
+        <!-- AI Engine Entry -->
+        <router-link to="/aiengine" class="entry-card ai-card">
+          <div class="card-glow ai-glow" />
+          <div class="card-border-anim" />
+          <div class="card-content">
+            <div class="card-icon-wrap ai-icon-wrap">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2a4 4 0 014 4v1a1 1 0 001 1h1a4 4 0 010 8h-1a1 1 0 00-1 1v1a4 4 0 01-8 0v-1a1 1 0 00-1-1H6a4 4 0 010-8h1a1 1 0 001-1V6a4 4 0 014-4z" />
+                <circle cx="12" cy="12" r="2" />
+              </svg>
+            </div>
+            <div class="card-info">
+              <h2 class="card-title">AI 智能引擎</h2>
+              <p class="card-desc">自然语言查询 · 智能决策预测 · AI辅助分析</p>
+              <div class="card-tags">
+                <span class="tag">LLM</span>
+                <span class="tag">RAG</span>
+                <span class="tag">NL2SQL</span>
+                <span class="tag">Agent</span>
+              </div>
+            </div>
+            <div class="card-arrow">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </div>
@@ -121,7 +180,7 @@
           <div class="card-border-anim" />
           <div class="card-content">
             <div class="card-icon-wrap staff-icon-wrap">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M23 21v-2a4 4 0 00-3-3.87" />
@@ -139,7 +198,7 @@
               </div>
             </div>
             <div class="card-arrow">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </div>
@@ -657,19 +716,20 @@ onUnmounted(() => {
 }
 
 .entry-cards {
-  display: flex;
-  gap: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
   width: 100%;
-  max-width: 800px;
+  max-width: 860px;
 }
 
 .entry-card {
   flex: 1;
   position: relative;
-  border-radius: 16px;
+  border-radius: 14px;
   background: rgba(22, 27, 34, 0.8);
   border: 1px solid rgba(96, 165, 250, 0.1);
-  padding: 28px 24px;
+  padding: 22px 20px;
   text-decoration: none;
   color: inherit;
   overflow: hidden;
@@ -677,7 +737,9 @@ onUnmounted(() => {
   animation: cardAppear 0.7s ease-out both;
 
   &:first-child { animation-delay: 0.8s; }
-  &:last-child { animation-delay: 0.95s; }
+  &:nth-child(2) { animation-delay: 0.9s; }
+  &:nth-child(3) { animation-delay: 1.0s; }
+  &:last-child { animation-delay: 1.1s; }
 
   &:hover {
     transform: translateY(-6px) scale(1.02);
@@ -696,6 +758,24 @@ onUnmounted(() => {
     .staff-glow { opacity: 1; }
     .staff-icon-wrap { box-shadow: 0 0 24px rgba(167, 139, 250, 0.3); }
     .card-arrow { color: #a78bfa; }
+  }
+
+  &.bigdata-card:hover {
+    border-color: rgba(34, 211, 238, 0.35);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(34, 211, 238, 0.1);
+
+    .bigdata-glow { opacity: 1; }
+    .bigdata-icon-wrap { box-shadow: 0 0 24px rgba(34, 211, 238, 0.3); }
+    .card-arrow { color: #22d3ee; }
+  }
+
+  &.ai-card:hover {
+    border-color: rgba(168, 85, 247, 0.35);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(168, 85, 247, 0.1);
+
+    .ai-glow { opacity: 1; }
+    .ai-icon-wrap { box-shadow: 0 0 24px rgba(168, 85, 247, 0.3); }
+    .card-arrow { color: #a855f7; }
   }
 }
 
@@ -717,6 +797,14 @@ onUnmounted(() => {
 
   &.staff-glow {
     background: radial-gradient(ellipse at center, rgba(167, 139, 250, 0.06) 0%, transparent 60%);
+  }
+
+  &.bigdata-glow {
+    background: radial-gradient(ellipse at center, rgba(34, 211, 238, 0.06) 0%, transparent 60%);
+  }
+
+  &.ai-glow {
+    background: radial-gradient(ellipse at center, rgba(168, 85, 247, 0.06) 0%, transparent 60%);
   }
 }
 
@@ -740,6 +828,14 @@ onUnmounted(() => {
     .staff-card & {
       background: conic-gradient(from 0deg, transparent 0deg, rgba(167, 139, 250, 0.15) 90deg, transparent 180deg);
     }
+
+    .bigdata-card & {
+      background: conic-gradient(from 0deg, transparent 0deg, rgba(34, 211, 238, 0.15) 90deg, transparent 180deg);
+    }
+
+    .ai-card & {
+      background: conic-gradient(from 0deg, transparent 0deg, rgba(168, 85, 247, 0.15) 90deg, transparent 180deg);
+    }
   }
 }
 
@@ -756,9 +852,9 @@ onUnmounted(() => {
 }
 
 .card-icon-wrap {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
   background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(96, 165, 250, 0.05));
   border: 1px solid rgba(96, 165, 250, 0.2);
   display: flex;
@@ -773,6 +869,18 @@ onUnmounted(() => {
     border-color: rgba(167, 139, 250, 0.2);
     color: #a78bfa;
   }
+
+  &.bigdata-icon-wrap {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(34, 211, 238, 0.05));
+    border-color: rgba(34, 211, 238, 0.2);
+    color: #22d3ee;
+  }
+
+  &.ai-icon-wrap {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.05));
+    border-color: rgba(168, 85, 247, 0.2);
+    color: #a855f7;
+  }
 }
 
 .card-info {
@@ -781,10 +889,10 @@ onUnmounted(() => {
 }
 
 .card-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: #e2e8f0;
-  margin: 0 0 6px;
+  margin: 0 0 5px;
   letter-spacing: 1px;
 }
 
@@ -813,6 +921,18 @@ onUnmounted(() => {
     background: rgba(167, 139, 250, 0.08);
     color: #a78bfa;
     border-color: rgba(167, 139, 250, 0.12);
+  }
+
+  .bigdata-card & {
+    background: rgba(34, 211, 238, 0.08);
+    color: #22d3ee;
+    border-color: rgba(34, 211, 238, 0.12);
+  }
+
+  .ai-card & {
+    background: rgba(168, 85, 247, 0.08);
+    color: #a855f7;
+    border-color: rgba(168, 85, 247, 0.12);
   }
 }
 
@@ -874,10 +994,10 @@ onUnmounted(() => {
   .engine-mid-ring { width: 80px; height: 80px; top: -14px; }
   .engine-label { font-size: 13px; }
 
-  .entry-cards { flex-direction: column; gap: 12px; }
+  .entry-cards { grid-template-columns: 1fr; gap: 10px; }
 
   .card-content { gap: 12px; }
-  .card-icon-wrap { width: 48px; height: 48px; }
-  .card-title { font-size: 16px; }
+  .card-icon-wrap { width: 44px; height: 44px; }
+  .card-title { font-size: 15px; }
 }
 </style>

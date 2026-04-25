@@ -14,6 +14,16 @@ const router = createRouter({
       component: () => import('@/views/Dashboard.vue'),
     },
     {
+      path: '/bigdata',
+      name: 'BigData',
+      component: () => import('@/views/BigDataView.vue'),
+    },
+    {
+      path: '/aiengine',
+      name: 'AIEngine',
+      component: () => import('@/views/AIEngineView.vue'),
+    },
+    {
       path: '/staff',
       name: 'StaffLayout',
       component: () => import('@/views/StaffLayout.vue'),

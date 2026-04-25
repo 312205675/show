@@ -43,7 +43,7 @@
     </header>
 
     <!-- ===== Main Content ===== -->
-    <main class="dash-main">
+    <main class="dash-main" :class="{ 'page-transitioning': isPageTransitioning }">
       <div class="page-slider" :style="{ transform: `translateX(-${currentPage * 100}%)` }">
         <!-- Page 0: Executive Dashboard -->
         <div class="page-slide">
@@ -347,21 +347,26 @@
                     <div class="panel-card stack-card" :class="{ 'stack-active': rightActiveTab === 'hot', 'stack-behind-1': rightActiveTab !== 'hot' }">
                       <div class="panel-toolbar">
                         <span class="panel-title"><span class="pt-bar" />热门楼盘<span class="ph-count">浏览量排行</span></span>
+                        <div class="hot-auto-indicator" :class="{ spinning: hotAutoRefresh }" @click="hotAutoRefresh = !hotAutoRefresh" :title="hotAutoRefresh ? '自动刷新中' : '点击开启自动刷新'">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        </div>
                         <span class="hot-fire">🔥</span>
                       </div>
                       <div class="panel-body hot-body">
-                        <div v-for="(h, i) in store.hotProperties.slice(0, 5)" :key="h.name" class="hot-row">
-                          <span class="hot-rank" :class="{ top: i < 3 }">{{ i + 1 }}</span>
-                          <div class="hot-info">
-                            <span class="hot-name">{{ h.name.replace('城发投·', '') }}</span>
-                            <span class="hot-tag" :style="{ background: h.tagColor + '20', color: h.tagColor }">{{ h.tag }}</span>
+                        <TransitionGroup name="hot-list" tag="div">
+                          <div v-for="(h, i) in displayedHotProperties" :key="h.name + '-' + i" class="hot-row" :class="{ 'hot-rank-change': h._rankChanged }">
+                            <span class="hot-rank" :class="{ top: i < 3 }">{{ i + 1 }}</span>
+                            <div class="hot-info">
+                              <span class="hot-name">{{ h.name.replace('城发投·', '') }}</span>
+                              <span class="hot-tag" :style="{ background: h.tagColor + '20', color: h.tagColor }">{{ h.tag }}</span>
+                            </div>
+                            <div class="hot-views">
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                              {{ (h.views / 1000).toFixed(1) }}k
+                            </div>
+                            <span class="hot-growth" :class="h.viewGrowth >= 0 ? 'up' : 'down'">{{ h.viewGrowth >= 0 ? '+' : '' }}{{ h.viewGrowth }}%</span>
                           </div>
-                          <div class="hot-views">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            {{ (h.views / 1000).toFixed(1) }}k
-                          </div>
-                          <span class="hot-growth" :class="h.viewGrowth >= 0 ? 'up' : 'down'">{{ h.viewGrowth >= 0 ? '+' : '' }}{{ h.viewGrowth }}%</span>
-                        </div>
+                        </TransitionGroup>
                       </div>
                     </div>
 
@@ -648,6 +653,7 @@ const { start, stop } = useAutoRefresh(30000)
 // Page navigation
 const currentPage = ref(0)
 const showSwipeHint = ref(true)
+const isPageTransitioning = ref(false)
 
 // Fullscreen state
 const fsKey = ref<string | null>(null)
@@ -807,6 +813,41 @@ const barProjects = computed(() => store.projectMatrix.slice(0, 6).map(p => p.na
 const barTarget = computed(() => store.projectMatrix.slice(0, 6).map(() => fluctuate(15, 3)))
 const barActual = computed(() => store.projectMatrix.slice(0, 6).map(p => Number(p.salesAmount.toFixed(1))))
 
+// Hot properties auto-refresh ranking
+const hotAutoRefresh = ref(true)
+const hotRefreshTimer = ref<ReturnType<typeof setInterval> | null>(null)
+const displayedHotProperties = ref(store.hotProperties.slice(0, 5).map(h => ({ ...h, _rankChanged: false })))
+
+function refreshHotRanking() {
+  const newRanking = [...store.hotProperties].sort((a, b) => b.views + Math.random() * 200 - 100 - (a.views + Math.random() * 200 - 100)).slice(0, 5)
+  const oldNames = displayedHotProperties.value.map(h => h.name)
+  displayedHotProperties.value = newRanking.map(h => ({
+    ...h,
+    views: h.views + Math.floor(Math.random() * 80 - 20),
+    _rankChanged: !oldNames.includes(h.name) || oldNames.indexOf(h.name) !== newRanking.indexOf(h),
+  }))
+  setTimeout(() => {
+    displayedHotProperties.value.forEach(h => { h._rankChanged = false })
+  }, 800)
+}
+
+function startHotRefresh() {
+  stopHotRefresh()
+  if (!hotAutoRefresh.value) return
+  hotRefreshTimer.value = setInterval(refreshHotRanking, 5000)
+}
+
+function stopHotRefresh() {
+  if (hotRefreshTimer.value) {
+    clearInterval(hotRefreshTimer.value)
+    hotRefreshTimer.value = null
+  }
+}
+
+watch(hotAutoRefresh, (v) => {
+  if (v) { startHotRefresh() } else { stopHotRefresh() }
+})
+
 // Area map data
 const areaMapData = computed(() => {
   const areas = [
@@ -841,9 +882,12 @@ const globeMarkers = computed(() => {
 })
 
 function switchPage(idx: number) {
+  if (idx === currentPage.value) return
+  isPageTransitioning.value = true
   currentPage.value = idx
   showSwipeHint.value = false
   playClickSound()
+  setTimeout(() => { isPageTransitioning.value = false }, 650)
 }
 
 // Swipe detection
@@ -861,8 +905,12 @@ function handleTouchEnd(e: TouchEvent) {
   if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
     if (dx < 0 && currentPage.value < pages.value.length - 1) {
       currentPage.value++
+      isPageTransitioning.value = true
+      setTimeout(() => { isPageTransitioning.value = false }, 650)
     } else if (dx > 0 && currentPage.value > 0) {
       currentPage.value--
+      isPageTransitioning.value = true
+      setTimeout(() => { isPageTransitioning.value = false }, 650)
     }
     showSwipeHint.value = false
   }
@@ -872,8 +920,12 @@ function handleWheel(e: WheelEvent) {
   if (e.deltaX !== 0) {
     if (e.deltaX > 30 && currentPage.value < pages.value.length - 1) {
       currentPage.value++
+      isPageTransitioning.value = true
+      setTimeout(() => { isPageTransitioning.value = false }, 650)
     } else if (e.deltaX < -30 && currentPage.value > 0) {
       currentPage.value--
+      isPageTransitioning.value = true
+      setTimeout(() => { isPageTransitioning.value = false }, 650)
     }
   }
 }
@@ -881,9 +933,13 @@ function handleWheel(e: WheelEvent) {
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'ArrowRight' && currentPage.value < pages.value.length - 1) {
     currentPage.value++
+    isPageTransitioning.value = true
+    setTimeout(() => { isPageTransitioning.value = false }, 650)
     if (presentMode.value && presentAutoEnabled.value) { presentProgress.value = 0; startPresentAutoRotate() }
   } else if (e.key === 'ArrowLeft' && currentPage.value > 0) {
     currentPage.value--
+    isPageTransitioning.value = true
+    setTimeout(() => { isPageTransitioning.value = false }, 650)
     if (presentMode.value && presentAutoEnabled.value) { presentProgress.value = 0; startPresentAutoRotate() }
   } else if (e.key === 'Escape') {
     if (fsKey.value) {
@@ -929,12 +985,14 @@ onMounted(() => {
   clockTimer = setInterval(() => { now.value = new Date() }, 1000)
   setTimeout(() => { showSwipeHint.value = false }, 4000)
   startRiskCarousel()
+  startHotRefresh()
 })
 
 onUnmounted(() => {
   stop()
   stopPresentAutoRotate()
   stopRiskCarousel()
+  stopHotRefresh()
   if (clockTimer) clearInterval(clockTimer)
   window.removeEventListener('touchstart', handleTouchStart)
   window.removeEventListener('touchend', handleTouchEnd)
@@ -1145,12 +1203,39 @@ onUnmounted(() => {
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  position: relative;
+
+  &.page-transitioning::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(96, 165, 250, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 100;
+    animation: page-flash 0.65s ease-out forwards;
+  }
+}
+
+@keyframes page-flash {
+  0% { opacity: 1; backdrop-filter: blur(2px); }
+  30% { opacity: 0.6; backdrop-filter: blur(0px); }
+  100% { opacity: 0; backdrop-filter: blur(0px); }
 }
 
 .page-slider {
   display: flex;
   height: 100%;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.page-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .page-slide {
@@ -1163,6 +1248,16 @@ onUnmounted(() => {
 }
 
 .slide-content { flex: 1; min-height: 0; }
+
+.dash-main.page-transitioning .slide-content {
+  animation: slide-enter 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes slide-enter {
+  0% { opacity: 0.4; transform: scale(0.97); filter: brightness(1.2); }
+  40% { opacity: 0.8; transform: scale(0.99); filter: brightness(1.05); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
 
 // ===== Executive Dashboard Layout (2D) =====
 .exec-layout {
@@ -1539,29 +1634,65 @@ onUnmounted(() => {
   border-radius: 8px;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  transform-style: preserve-3d;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 10%;
+    width: 80%;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.3);
+    filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.4s;
+    z-index: -1;
+  }
+
+  &:hover {
+    &::before { opacity: 1; }
+    &::after { opacity: 0.6; }
+  }
 
   &.status-red {
-    background: var(--danger-light, rgba(239, 68, 68, 0.15));
-    border-color: rgba(239, 68, 68, 0.2);
-    &:hover { border-color: var(--danger, #EF4444); box-shadow: 0 8px 24px var(--danger-light); transform: perspective(600px) translateY(-4px) scale(1.04) rotateX(2deg); }
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.18), rgba(239, 68, 68, 0.08));
+    border-color: rgba(239, 68, 68, 0.25);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.1), inset 0 1px 0 rgba(255,255,255,0.05);
+    &:hover { border-color: var(--danger, #EF4444); box-shadow: 0 12px 32px rgba(239, 68, 68, 0.25), 0 0 20px rgba(239, 68, 68, 0.1), inset 0 1px 0 rgba(255,255,255,0.08); transform: perspective(800px) translateY(-6px) scale(1.05) rotateX(4deg) rotateY(-1deg); }
   }
   &.status-yellow {
-    background: var(--warning-light, rgba(245, 158, 11, 0.15));
-    border-color: rgba(245, 158, 11, 0.2);
-    &:hover { border-color: var(--warning, #F59E0B); box-shadow: 0 8px 24px var(--warning-light); transform: perspective(600px) translateY(-4px) scale(1.04) rotateX(2deg); }
+    background: linear-gradient(145deg, rgba(245, 158, 11, 0.18), rgba(245, 158, 11, 0.08));
+    border-color: rgba(245, 158, 11, 0.25);
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.1), inset 0 1px 0 rgba(255,255,255,0.05);
+    &:hover { border-color: var(--warning, #F59E0B); box-shadow: 0 12px 32px rgba(245, 158, 11, 0.25), 0 0 20px rgba(245, 158, 11, 0.1), inset 0 1px 0 rgba(255,255,255,0.08); transform: perspective(800px) translateY(-6px) scale(1.05) rotateX(4deg) rotateY(1deg); }
   }
   &.status-green {
-    background: var(--success-light, rgba(34, 197, 94, 0.15));
-    border-color: rgba(34, 197, 94, 0.15);
-    &:hover { border-color: var(--success, #22C55E); box-shadow: 0 8px 24px var(--success-light); transform: perspective(600px) translateY(-4px) scale(1.04) rotateX(2deg); }
+    background: linear-gradient(145deg, rgba(34, 197, 94, 0.16), rgba(34, 197, 94, 0.06));
+    border-color: rgba(34, 197, 94, 0.2);
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.08), inset 0 1px 0 rgba(255,255,255,0.05);
+    &:hover { border-color: var(--success, #22C55E); box-shadow: 0 12px 32px rgba(34, 197, 94, 0.25), 0 0 20px rgba(34, 197, 94, 0.1), inset 0 1px 0 rgba(255,255,255,0.08); transform: perspective(800px) translateY(-6px) scale(1.05) rotateX(4deg) rotateY(-1deg); }
   }
 }
 
 .pcard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .pcard-name { font-size: 11px; font-weight: 600; color: var(--text-title, #e2e8f0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
 .pcard-city { font-size: 9px; color: var(--text-caption, #64748b); padding: 1px 4px; background: var(--surface, rgba(255, 255, 255, 0.03)); border-radius: 2px; flex-shrink: 0; }
-.pcard-rate { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; line-height: 1.2; margin-bottom: 6px; &.danger { color: var(--danger, #EF4444); } &.warn { color: var(--warning, #F59E0B); } &.ok { color: var(--success, #22C55E); } }
+.pcard-rate { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; line-height: 1.2; margin-bottom: 6px; position: relative; &.danger { color: var(--danger, #EF4444); text-shadow: 0 0 12px rgba(239, 68, 68, 0.3), 0 2px 4px rgba(0,0,0,0.3); } &.warn { color: var(--warning, #F59E0B); text-shadow: 0 0 12px rgba(245, 158, 11, 0.3), 0 2px 4px rgba(0,0,0,0.3); } &.ok { color: var(--success, #22C55E); text-shadow: 0 0 12px rgba(34, 197, 94, 0.3), 0 2px 4px rgba(0,0,0,0.3); } }
 .pcard-rate-unit { font-size: 12px; opacity: 0.6; margin-left: 1px; }
 .pcard-metrics { display: flex; gap: 10px; }
 .pm-item { display: flex; flex-direction: column; gap: 1px; }
@@ -1892,13 +2023,34 @@ onUnmounted(() => {
 // ===== Hot Properties =====
 .hot-fire { font-size: 12px; }
 .hot-body { padding: 4px 10px 8px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
-.hot-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; transition: all 0.2s; &:hover { background: var(--surface, rgba(255,255,255,0.03)); border-radius: 4px; } }
+.hot-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); &:hover { background: var(--surface, rgba(255,255,255,0.03)); border-radius: 4px; } &.hot-rank-change { animation: hot-flash 0.8s ease-out; } }
 .hot-rank { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; width: 18px; text-align: center; color: var(--text-caption, #64748b); &.top { color: var(--warning, #F59E0B); text-shadow: 0 0 6px rgba(245,158,11,0.3); } }
 .hot-info { flex: 1; display: flex; align-items: center; gap: 5px; min-width: 0; }
 .hot-name { font-size: 11px; font-weight: 600; color: var(--text-title, #e2e8f0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hot-tag { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
 .hot-views { display: flex; align-items: center; gap: 3px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--text-body, #cbd5e1); }
 .hot-growth { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; &.up { color: var(--success, #22C55E); } &.down { color: var(--danger, #EF4444); } }
+.hot-auto-indicator {
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 6px; cursor: pointer;
+  color: var(--text-caption, #64748b); transition: all 0.3s;
+  border: 1px solid transparent;
+  &:hover { color: var(--primary, #60a5fa); border-color: rgba(96, 165, 250, 0.2); background: rgba(96, 165, 250, 0.06); }
+  &.spinning { color: var(--success, #22C55E); animation: spin-icon 2s linear infinite; }
+}
+@keyframes spin-icon { to { transform: rotate(360deg); } }
+@keyframes hot-flash {
+  0% { background: rgba(96, 165, 250, 0.15); transform: translateX(-2px); }
+  50% { background: rgba(96, 165, 250, 0.06); }
+  100% { background: transparent; transform: translateX(0); }
+}
+
+// Hot list transition group
+.hot-list-enter-active { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+.hot-list-leave-active { transition: all 0.3s ease-in; position: absolute; }
+.hot-list-enter-from { opacity: 0; transform: translateX(20px); }
+.hot-list-leave-to { opacity: 0; transform: translateX(-20px); }
+.hot-list-move { transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
 
 // ===== Decision Recommendations =====
 

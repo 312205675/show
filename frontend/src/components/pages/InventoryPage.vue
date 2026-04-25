@@ -263,12 +263,13 @@ const inventoryScatterData = computed(() => inventory.value.map(i => ({
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 // ===== Inventory Table =====
-.inv-table { display: flex; flex-direction: column; gap: 3px; }
-.it-header { display: grid; grid-template-columns: 1.4fr 0.7fr 0.6fr 0.5fr 0.6fr 0.7fr 0.7fr 0.6fr 0.6fr; font-size: 11px; color: var(--text-caption, #64748b); padding: 6px 0; border-bottom: 1px solid rgba(96,165,250,0.1); gap: 4px; font-weight: 600; letter-spacing: 0.3px; }
+.inv-table { display: flex; flex-direction: column; gap: 3px; overflow-x: auto; }
+.it-header { display: grid; grid-template-columns: 1.6fr 0.8fr 0.7fr 0.6fr 0.7fr 0.8fr 0.8fr 0.7fr 0.7fr; font-size: 11px; color: var(--text-caption, #64748b); padding: 6px 4px; border-bottom: 1px solid rgba(96,165,250,0.1); gap: 8px; font-weight: 600; letter-spacing: 0.3px; min-width: 680px; align-items: center; }
 .it-row {
-  display: grid; grid-template-columns: 1.4fr 0.7fr 0.6fr 0.5fr 0.6fr 0.7fr 0.7fr 0.6fr 0.6fr;
-  font-size: 12px; color: var(--text-body, #cbd5e1); padding: 8px 4px; gap: 4px;
+  display: grid; grid-template-columns: 1.6fr 0.8fr 0.7fr 0.6fr 0.7fr 0.8fr 0.8fr 0.7fr 0.7fr;
+  font-size: 12px; color: var(--text-body, #cbd5e1); padding: 8px 4px; gap: 8px;
   transition: all 0.25s; border-radius: 6px; border-left: 3px solid transparent;
+  min-width: 680px; align-items: center;
 
   &:hover { background: var(--surface, rgba(255,255,255,0.04)); transform: translateX(2px); }
 
@@ -276,25 +277,25 @@ const inventoryScatterData = computed(() => inventory.value.map(i => ({
   &.row-yellow { border-left-color: var(--warning, #F59E0B); background: rgba(245,158,11,0.03); }
   &.row-green { border-left-color: var(--success, #22C55E); }
 }
-.it-name { color: var(--text-title, #e2e8f0); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
-.it-city { color: var(--text-caption, #64748b); }
-.it-num { font-family: 'JetBrains Mono', monospace; }
-.it-unsold { color: var(--warning, #F59E0B); font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 13px; text-shadow: 0 0 8px rgba(245,158,11,0.2); }
+.it-name { color: var(--text-title, #e2e8f0); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; min-width: 0; }
+.it-city { color: var(--text-caption, #64748b); white-space: nowrap; }
+.it-num { font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+.it-unsold { color: var(--warning, #F59E0B); font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
 .it-rate, .it-cycle {
-  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px;
-  &.green { color: var(--success, #22C55E); text-shadow: 0 0 8px rgba(34,197,94,0.2); }
-  &.yellow { color: var(--warning, #F59E0B); text-shadow: 0 0 8px rgba(245,158,11,0.2); }
-  &.red { color: var(--danger, #EF4444); text-shadow: 0 0 8px rgba(239,68,68,0.3); }
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; white-space: nowrap;
+  &.green { color: var(--success, #22C55E); }
+  &.yellow { color: var(--warning, #F59E0B); }
+  &.red { color: var(--danger, #EF4444); }
 }
 .it-status {
-  font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; text-align: center; letter-spacing: 0.5px;
-  &.st-green { background: rgba(34,197,94,0.15); color: var(--success, #22C55E); box-shadow: 0 0 8px rgba(34,197,94,0.1); }
-  &.st-yellow { background: rgba(245,158,11,0.15); color: var(--warning, #F59E0B); box-shadow: 0 0 8px rgba(245,158,11,0.1); }
-  &.st-red { background: rgba(239,68,68,0.15); color: var(--danger, #EF4444); box-shadow: 0 0 10px rgba(239,68,68,0.15); animation: statusPulse 2s ease-in-out infinite; }
+  font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; text-align: center; letter-spacing: 0.5px; white-space: nowrap;
+  &.st-green { background: rgba(34,197,94,0.15); color: var(--success, #22C55E); }
+  &.st-yellow { background: rgba(245,158,11,0.15); color: var(--warning, #F59E0B); }
+  &.st-red { background: rgba(239,68,68,0.15); color: var(--danger, #EF4444); animation: statusPulse 2s ease-in-out infinite; }
 }
 @keyframes statusPulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(239,68,68,0.1); }
-  50% { box-shadow: 0 0 16px rgba(239,68,68,0.25); }
+  0%, 100% { box-shadow: 0 0 6px rgba(239,68,68,0.08); }
+  50% { box-shadow: 0 0 12px rgba(239,68,68,0.18); }
 }
 
 // ===== Slow Items =====
