@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, nextTick, watch, type Component } from 'vue'
 import { useSound } from '@/composables/useSound'
 
 const { playTabSwitchSound } = useSound()
@@ -40,7 +40,7 @@ interface PageItem {
   key: string
   label: string
   icon: string
-  component?: unknown
+  component?: Component
 }
 
 const props = defineProps<{
