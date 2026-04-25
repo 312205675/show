@@ -91,7 +91,9 @@ function init() {
   dirLight.shadow.mapSize.width = 1024
   dirLight.shadow.mapSize.height = 1024
   scene.add(dirLight)
-  scene.add(new THREE.PointLight(0x4a9eff, 0.8, 50).translateTo = undefined || (() => {})())
+  const p0 = new THREE.PointLight(0x4a9eff, 0.8, 50)
+  p0.position.set(0, 15, 0)
+  scene.add(p0)
   const p1 = new THREE.PointLight(0x4a9eff, 0.8, 50)
   p1.position.set(-10, 15, -10)
   scene.add(p1)

@@ -13,8 +13,8 @@
       >
         <div class="ind-top">
           <span class="ind-label">{{ item.label }}</span>
-          <span v-if="item.trend !== 0" class="ind-trend" :class="item.trend > 0 ? 'up' : 'down'">
-            {{ item.trend > 0 ? '▲' : '▼' }}{{ Math.abs(item.trend).toFixed(1) }}%
+          <span v-if="item.trend != null && item.trend !== 0" class="ind-trend" :class="item.trend > 0 ? 'up' : 'down'">
+            {{ item.trend > 0 ? '▲' : '▼' }}{{ Math.abs(item.trend ?? 0).toFixed(1) }}%
           </span>
         </div>
         <div class="ind-value-row">
