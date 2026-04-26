@@ -19,15 +19,17 @@ src/
 target/
 pom.xml
 
-# 部署和配置
+# 部署脚本（不需要打入镜像）
 deploy.bat
 dev.bat
+deploy-aliyun.sh
+
+# 配置文件
 netlify.toml
-Dockerfile
-docker-compose.yml
 
 # 其他
 *.md
 *.log
 smart-estate-dashboard@1.0.0
 vue-tsc
+.codebuddy
