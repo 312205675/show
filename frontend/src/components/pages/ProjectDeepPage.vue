@@ -140,7 +140,7 @@
         </div>
         <div class="source-visual">
           <div class="source-donut-area">
-            <ChartWrapper :option="sourceDonutOption" height="100%" />
+            <ChartWrapper :option="sourceDonutOption" height="140px" />
           </div>
           <div class="source-legend">
             <div v-for="s in data.customerSources" :key="s.name" class="source-legend-item">
@@ -217,7 +217,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { PROJECT_LIST } from '@/utils/mockData'
 import { generateProjectDeepData, type ProjectDeepData } from '@/utils/pageMockData'
 import ChartWrapper from '@/components/common/ChartWrapper.vue'
@@ -346,9 +346,10 @@ const financeKPIs = computed(() => {
   const totalRevenue = closed * avgDealPrice
   const costPerCustomer = Math.round(1500 + (1 - convRate / 20) * 1000)
   const totalMarketingCost = leads * costPerCustomer / 10000
-  const roi = totalMarketingCost > 0 ? (totalRevenue / totalMarketingCost).toFixed(1) : '0'
+  const roiNum = totalMarketingCost > 0 ? Number((totalRevenue / totalMarketingCost).toFixed(1)) : 0
   const unsoldCapital = totalUnsold.value * avgDealPrice
-  const returnRate = 72 + Math.random() * 18 // 模拟回款率
+  // Deterministic return rate based on score
+  const returnRate = d.aiDiagnosis.score >= 70 ? 88 : d.aiDiagnosis.score >= 45 ? 78 : 65
 
   return [
     {
@@ -373,13 +374,13 @@ const financeKPIs = computed(() => {
     },
     {
       label: '营销ROI',
-      value: Number(roi),
+      value: roiNum,
       decimals: 1,
       suffix: '',
-      color: Number(roi) < 2 ? '#EF4444' : Number(roi) < 4 ? '#F59E0B' : '#22C55E',
+      color: roiNum < 2 ? '#EF4444' : roiNum < 4 ? '#F59E0B' : '#22C55E',
       icon: '📈',
-      level: Number(roi) < 2 ? 'danger' : Number(roi) < 4 ? 'warn' : 'good',
-      desc: Number(roi) < 2 ? '投入产出严重失衡' : Number(roi) < 4 ? 'ROI偏低，需优化投放' : '投入产出比健康',
+      level: roiNum < 2 ? 'danger' : roiNum < 4 ? 'warn' : 'good',
+      desc: roiNum < 2 ? '投入产出严重失衡' : roiNum < 4 ? 'ROI偏低，需优化投放' : '投入产出比健康',
     },
     {
       label: '回款率',
@@ -410,7 +411,7 @@ function funnelBarStyle(s: { count: number; color: string }, i: number) {
   const pct = s.count / data.value.funnel[0].count * 100
   return {
     width: Math.max(pct, 8) + '%',
-    '--bar-color': s.color,
+    background: s.color,
   }
 }
 
@@ -610,7 +611,10 @@ $cyan: #06b6d4;
   border-radius: 50%;
   opacity: 0.06;
   pointer-events: none;
-  background: radial-gradient(circle, currentColor, transparent);
+
+  .good & { background: radial-gradient(circle, $success, transparent); }
+  .warn & { background: radial-gradient(circle, $warning, transparent); }
+  .danger & { background: radial-gradient(circle, $danger, transparent); }
 }
 
 .health-left {
@@ -837,7 +841,7 @@ $cyan: #06b6d4;
 .funnel-bar-fill-inner {
   position: absolute;
   inset: 0;
-  background: var(--bar-color);
+  background: inherit;
   opacity: 0.85;
   border-radius: 6px;
 }

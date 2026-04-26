@@ -1,0 +1,33 @@
+# 依赖和构建产物
+frontend/node_modules
+frontend/dist
+node_modules
+dist
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# 后端（不需要）
+src/
+target/
+pom.xml
+
+# 部署和配置
+deploy.bat
+dev.bat
+netlify.toml
+Dockerfile
+docker-compose.yml
+
+# 其他
+*.md
+*.log
+smart-estate-dashboard@1.0.0
+vue-tsc
