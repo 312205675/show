@@ -6,7 +6,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { LineChart, BarChart, PieChart, ScatterChart, HeatmapChart, GaugeChart, RadarChart, MapChart } from 'echarts/charts'
+import { LineChart, BarChart, PieChart, ScatterChart, EffectScatterChart, HeatmapChart, GaugeChart, RadarChart, MapChart } from 'echarts/charts'
 import {
   TitleComponent, TooltipComponent, LegendComponent, GridComponent,
   VisualMapComponent, GeoComponent, DatasetComponent
@@ -16,7 +16,7 @@ import {
 import 'echarts-gl'
 
 echarts.use([
-  CanvasRenderer, LineChart, BarChart, PieChart, ScatterChart,
+  CanvasRenderer, LineChart, BarChart, PieChart, ScatterChart, EffectScatterChart,
   HeatmapChart, GaugeChart, RadarChart, MapChart,
   TitleComponent, TooltipComponent, LegendComponent, GridComponent,
   VisualMapComponent, GeoComponent, DatasetComponent
@@ -57,6 +57,6 @@ onUnmounted(() => {
 
 <style scoped>
 .chart-wrapper {
-  min-height: 150px;
+  min-height: 60px;
 }
 </style>

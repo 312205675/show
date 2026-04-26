@@ -1,5 +1,115 @@
 <template>
   <div class="dashboard" :class="{ 'present-active': presentMode }" :style="{ zoom: themeStore.fontScale }">
+    <!-- ===== 总览级入场特效 ===== -->
+    <Teleport to="body">
+      <Transition name="dash-cosmic">
+        <div v-if="showDashEntrance" class="dash-entrance-overlay">
+          <!-- 数据矩阵雨 Canvas -->
+          <canvas ref="matrixCanvas" class="matrix-canvas" />
+
+          <!-- 天际线剪影 -->
+          <div class="skyline-silhouette">
+            <svg viewBox="0 0 1920 200" preserveAspectRatio="none" class="skyline-svg">
+              <path d="M0,200 L0,160 L40,160 L40,120 L60,120 L60,90 L80,90 L80,120 L100,120 L100,140 L120,140 L120,100 L130,100 L130,70 L140,70 L140,100 L160,100 L160,130 L200,130 L200,80 L210,80 L210,50 L220,50 L220,80 L240,80 L240,120 L280,120 L280,90 L290,90 L290,55 L300,55 L300,90 L320,90 L320,110 L360,110 L360,70 L370,70 L370,40 L380,35 L390,40 L390,70 L420,70 L420,100 L460,100 L460,60 L470,60 L470,30 L480,25 L490,30 L490,60 L520,60 L520,95 L560,95 L560,75 L570,75 L570,45 L580,45 L580,75 L620,75 L620,105 L660,105 L660,65 L670,65 L670,35 L680,30 L690,35 L690,65 L720,65 L720,100 L760,100 L760,85 L770,85 L770,55 L780,55 L780,85 L820,85 L820,110 L860,110 L860,70 L870,70 L870,40 L880,35 L890,40 L890,70 L920,70 L920,105 L960,105 L960,80 L970,80 L970,50 L980,50 L980,80 L1020,80 L1020,115 L1060,115 L1060,75 L1070,75 L1070,45 L1080,40 L1090,45 L1090,75 L1120,75 L1120,100 L1160,100 L1160,85 L1170,85 L1170,55 L1180,55 L1180,85 L1220,85 L1220,110 L1260,110 L1260,65 L1270,65 L1270,35 L1280,30 L1290,35 L1290,65 L1320,65 L1320,95 L1360,95 L1360,80 L1370,80 L1370,50 L1380,50 L1380,80 L1420,80 L1420,120 L1460,120 L1460,70 L1470,70 L1470,40 L1480,35 L1490,40 L1490,70 L1520,70 L1520,105 L1560,105 L1560,90 L1570,90 L1570,60 L1580,60 L1580,90 L1620,90 L1620,115 L1660,115 L1660,75 L1670,75 L1670,45 L1680,40 L1690,45 L1690,75 L1720,75 L1720,100 L1760,100 L1760,130 L1800,130 L1800,90 L1810,90 L1810,60 L1820,55 L1830,60 L1830,90 L1860,90 L1860,140 L1920,140 L1920,200 Z"
+                fill="rgba(15, 20, 30, 0.9)" />
+              <path d="M0,200 L0,170 L60,170 L60,145 L100,145 L100,165 L140,165 L140,135 L160,135 L160,155 L200,155 L200,120 L220,120 L220,145 L260,145 L260,160 L300,160 L300,130 L320,130 L320,150 L360,150 L360,125 L380,125 L380,148 L420,148 L420,115 L440,115 L440,140 L480,140 L480,155 L520,155 L520,128 L540,128 L540,150 L580,150 L580,120 L600,120 L600,145 L640,145 L640,160 L680,160 L680,135 L700,135 L700,155 L740,155 L740,125 L760,125 L760,148 L800,148 L800,165 L840,165 L840,138 L860,138 L860,158 L900,158 L900,130 L920,130 L920,152 L960,152 L960,170 L1000,170 L1000,142 L1020,142 L1020,162 L1060,162 L1060,135 L1080,135 L1080,155 L1120,155 L1120,168 L1160,168 L1160,140 L1180,140 L1180,160 L1220,160 L1220,175 L1260,175 L1260,148 L1280,148 L1280,168 L1320,168 L1320,145 L1340,145 L1340,165 L1380,165 L1380,180 L1420,180 L1420,152 L1440,152 L1440,172 L1480,172 L1480,148 L1500,148 L1500,168 L1540,168 L1540,185 L1580,185 L1580,158 L1600,158 L1600,175 L1640,175 L1640,150 L1660,150 L1660,170 L1700,170 L1700,188 L1740,188 L1740,162 L1760,162 L1760,180 L1800,180 L1800,165 L1820,165 L1820,182 L1860,182 L1860,175 L1900,175 L1900,190 L1920,190 L1920,200 Z"
+                fill="rgba(10, 14, 22, 0.95)" />
+            </svg>
+          </div>
+
+          <!-- 旋转指标环 -->
+          <div class="kpi-orbit-ring orbit-1" :style="{ opacity: orbitOpacity }">
+            <span v-for="(kpi, i) in orbitKPIs1" :key="'o1'+i" class="orbit-kpi" :style="{ transform: `rotate(${i * 60}deg) translateY(-180px) rotate(${-i * 60}deg)` }">{{ kpi }}</span>
+          </div>
+          <div class="kpi-orbit-ring orbit-2" :style="{ opacity: orbitOpacity }">
+            <span v-for="(kpi, i) in orbitKPIs2" :key="'o2'+i" class="orbit-kpi orbit-kpi-sm" :style="{ transform: `rotate(${i * 45}deg) translateY(-260px) rotate(${-i * 45}deg)` }">{{ kpi }}</span>
+          </div>
+          <div class="kpi-orbit-ring orbit-3" :style="{ opacity: orbitOpacity }">
+            <span v-for="(kpi, i) in orbitKPIs3" :key="'o3'+i" class="orbit-kpi orbit-kpi-xs" :style="{ transform: `rotate(${i * 36}deg) translateY(-340px) rotate(${-i * 36}deg)` }">{{ kpi }}</span>
+          </div>
+
+          <!-- 飞入的KPI指标卡 -->
+          <div v-for="kpi in flyingKPIs" :key="'k'+kpi.id" class="flying-kpi-card"
+            :style="{
+              left: kpi.startX + 'px',
+              top: kpi.startY + 'px',
+              transform: `translate(${kpi.tx}px, ${kpi.ty}px) scale(${kpi.scale})`,
+              opacity: kpi.opacity,
+              transition: `all ${kpi.dur}ms cubic-bezier(0.16, 1, 0.3, 1) ${kpi.delay}ms`,
+            }"
+          >
+            <span class="fkpi-label">{{ kpi.label }}</span>
+            <span class="fkpi-value" :style="{ color: kpi.color }">{{ kpi.value }}</span>
+          </div>
+
+          <!-- 聚合核心 -->
+          <div class="convergence-core" :style="{ opacity: coreOpacity, transform: coreTransform }">
+            <div class="core-ring core-ring-1" />
+            <div class="core-ring core-ring-2" />
+            <div class="core-ring core-ring-3" />
+            <div class="core-glow" />
+          </div>
+
+          <!-- 爆炸冲击波 -->
+          <div class="explosion-wave" :style="{ opacity: explosionOpacity, transform: explosionTransform }" />
+
+          <!-- 爆炸碎片粒子 -->
+          <div v-for="p in explosionParticles" :key="'e'+p.id" class="explosion-particle"
+            :style="{
+              left: '50%', top: '50%',
+              width: p.size + 'px', height: p.size + 'px',
+              background: p.color,
+              boxShadow: `0 0 ${p.size * 3}px ${p.color}`,
+              transform: `translate(-50%, -50%) translate(${p.tx}px, ${p.ty}px) scale(${p.scale})`,
+              opacity: p.opacity,
+              transition: `all ${p.dur}ms cubic-bezier(0.22, 1, 0.36, 1) ${p.delay}ms`,
+            }"
+          />
+
+          <!-- 科技网格 -->
+          <div class="tech-grid-overlay" :style="{ opacity: techGridOpacity }">
+            <svg viewBox="0 0 1200 600" class="tech-grid-svg">
+              <defs>
+                <pattern id="circuitPat" width="80" height="80" patternUnits="userSpaceOnUse">
+                  <path d="M0,40 L30,40 L30,20 L50,20 L50,40 L80,40" fill="none" stroke="rgba(251,191,36,0.06)" stroke-width="0.5"/>
+                  <path d="M40,0 L40,30 L20,30 L20,50 L40,50 L40,80" fill="none" stroke="rgba(96,165,250,0.06)" stroke-width="0.5"/>
+                  <circle cx="30" cy="40" r="2" fill="rgba(251,191,36,0.1)"/>
+                  <circle cx="50" cy="20" r="1.5" fill="rgba(96,165,250,0.08)"/>
+                </pattern>
+              </defs>
+              <rect width="1200" height="600" fill="url(#circuitPat)"/>
+            </svg>
+          </div>
+
+          <!-- 主标题区 -->
+          <div class="dash-title-area" :style="{ opacity: dashTitleOpacity, transform: dashTitleTransform }">
+            <div class="dash-badge">REAL-TIME COMMAND CENTER</div>
+            <div class="dash-main-title">
+              <span v-for="(ch, i) in dashTitleChars" :key="i" class="dash-title-char" :style="{ animationDelay: (i * 70) + 'ms' }">{{ ch }}</span>
+            </div>
+            <div class="dash-sub-title">SMART ESTATE · 集团决策驾驶舱</div>
+            <div class="dash-kpi-preview">
+              <div v-for="k in previewKPIs" :key="k.label" class="dkp-item" :style="{ '--dkp-color': k.color }">
+                <span class="dkp-val" :style="{ color: k.color }">{{ k.displayValue }}</span>
+                <span class="dkp-label">{{ k.label }}</span>
+              </div>
+            </div>
+            <!-- 加载进度 -->
+            <div class="dash-progress">
+              <div class="dash-progress-bar" :style="{ width: dashScanProgress + '%' }" />
+            </div>
+            <div class="dash-percent">{{ Math.round(dashScanProgress) }}% SYSTEM READY</div>
+          </div>
+
+          <!-- 角落HUD装饰 -->
+          <div class="hud-corner hud-tl"><span /><span /><span>SYS:ONLINE</span></div>
+          <div class="hud-corner hud-tr"><span /><span /><span>v3.2.1</span></div>
+          <div class="hud-corner hud-bl"><span /><span /><span>DATA:LIVE</span></div>
+          <div class="hud-corner hud-br"><span /><span /><span>NET:OK</span></div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- ===== Executive Header ===== -->
     <header class="exec-header">
       <div class="header-left">
@@ -594,7 +704,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, computed, defineAsyncComponent, markRaw, watch, type Component } from 'vue'
+import { onMounted, onUnmounted, ref, computed, defineAsyncComponent, markRaw, watch, nextTick, type Component } from 'vue'
 import { useDashboardStore } from '@/store'
 import { useThemeStore } from '@/store/theme'
 import { useAutoRefresh } from '@/composables/useAutoRefresh'
@@ -635,8 +745,6 @@ const CustomerPage = markRaw(defineAsyncComponent(() => import('@/components/pag
 const FunnelPage = markRaw(defineAsyncComponent(() => import('@/components/pages/FunnelPage.vue')))
 const InventoryPage = markRaw(defineAsyncComponent(() => import('@/components/pages/InventoryPage.vue')))
 const RegionPage = markRaw(defineAsyncComponent(() => import('@/components/pages/RegionPage.vue')))
-const BigDataPage = markRaw(defineAsyncComponent(() => import('@/components/pages/BigDataPage.vue')))
-
 interface PageDef {
   key: string
   label: string
@@ -652,7 +760,6 @@ const pages = ref<PageDef[]>([
   { key: 'project', label: '项目深度', icon: '◈', component: ProjectDeepPage },
   { key: 'customer', label: '客户画像', icon: '◎', component: CustomerPage },
   { key: 'funnel', label: '销售漏斗', icon: '▽', component: FunnelPage },
-  { key: 'bigdata', label: '大数据平台', icon: '⬢', component: BigDataPage },
 ])
 
 // ⛔ 受限页面：不允许在驾驶舱内滑动访问，只能从首页进入
@@ -1005,6 +1112,257 @@ function openRecommendation(item: RecommendationItem) {
 
 const activeRecommendation = ref<RecommendationItem | null>(null)
 
+// ===== 总览级入场特效 =====
+const showDashEntrance = ref(false)
+const dashScanProgress = ref(0)
+const orbitOpacity = ref(0)
+const coreOpacity = ref(0)
+const coreTransform = ref('scale(0.3)')
+const explosionOpacity = ref(0)
+const explosionTransform = ref('translate(-50%, -50%) scale(0)')
+const techGridOpacity = ref(0)
+const dashTitleOpacity = ref(0)
+const dashTitleTransform = ref('scale(0.8) translateY(20px)')
+const matrixCanvas = ref<HTMLCanvasElement | null>(null)
+let dashAnimFrameId = 0
+let matrixAnimId = 0
+
+const dashTitleText = '智慧地产决策中枢'
+const dashTitleChars = dashTitleText.split('')
+
+const orbitKPIs1 = ['去化率 68.5%', '销售额 12.8亿', '回款率 82.3%', '库存 2,847套', '现金流 8.6亿', '利润率 15.2%']
+const orbitKPIs2 = ['环比+5.3%', '月成交186套', '均价1.2万/㎡', '来访2,430组', '转化率8.6%', '老带新22%', '自渠18.5%', '分销10.8%']
+const orbitKPIs3 = ['裕华区28%', '长安区25%', '桥西区20%', '刚需38%', '改善28%', '投资15%', '商铺10%', '回款+3.2%', '库存-120', '目标92%']
+
+const previewKPIs = computed(() => [
+  { label: '去化率', displayValue: adjustedKPI.value.depletionRate.toFixed(1) + '%', color: depletionColor.value },
+  { label: '销售额', displayValue: adjustedKPI.value.totalSales.toFixed(1) + '亿', color: 'var(--primary)' },
+  { label: '回款率', displayValue: adjustedKPI.value.returnRate.toFixed(1) + '%', color: returnColor.value },
+  { label: '库存', displayValue: adjustedKPI.value.inventoryUnits + '套', color: inventoryColor.value },
+  { label: '利润率', displayValue: adjustedKPI.value.profitMargin.toFixed(1) + '%', color: 'var(--success)' },
+])
+
+interface FlyingKPI {
+  id: number; label: string; value: string; color: string;
+  startX: number; startY: number; tx: number; ty: number; scale: number; opacity: number; dur: number; delay: number
+}
+const flyingKPIs = ref<FlyingKPI[]>([])
+
+function generateFlyingKPIs() {
+  const kpis = [
+    { label: '去化率', value: '68.5%', color: '#22C55E' },
+    { label: '累计销售', value: '12.8亿', color: '#60a5fa' },
+    { label: '回款率', value: '82.3%', color: '#00d68f' },
+    { label: '库存套数', value: '2,847', color: '#ffab00' },
+    { label: '现金流', value: '8.6亿', color: '#f472b6' },
+    { label: '利润率', value: '15.2%', color: '#a78bfa' },
+    { label: '环比增长', value: '+5.3%', color: '#00e5ff' },
+    { label: '月成交', value: '186套', color: '#38bdf8' },
+    { label: '均价', value: '1.2万/㎡', color: '#fbbf24' },
+    { label: '来访量', value: '2,430组', color: '#fb923c' },
+    { label: '转化率', value: '8.6%', color: '#34d399' },
+    { label: '目标完成', value: '92%', color: '#818cf8' },
+  ]
+  const arr: FlyingKPI[] = []
+  const cx = window.innerWidth / 2
+  const cy = window.innerHeight / 2
+  for (let i = 0; i < kpis.length; i++) {
+    const angle = (Math.PI * 2 * i) / kpis.length + (Math.random() - 0.5) * 0.6
+    const startDist = 600 + Math.random() * 500
+    const startX = cx + Math.cos(angle) * startDist
+    const startY = cy + Math.sin(angle) * startDist
+    arr.push({
+      id: i,
+      ...kpis[i],
+      startX,
+      startY,
+      tx: cx - startX,
+      ty: cy - startY,
+      scale: 0,
+      opacity: 0.9,
+      dur: 1000 + Math.random() * 800,
+      delay: 400 + i * 80,
+    })
+  }
+  flyingKPIs.value = arr
+}
+
+interface ExplosionParticle {
+  id: number; size: number; color: string; tx: number; ty: number; scale: number; opacity: number; dur: number; delay: number
+}
+const explosionParticles = ref<ExplosionParticle[]>([])
+
+function generateExplosionParticles() {
+  const colors = ['#fbbf24', '#60a5fa', '#00e5ff', '#f472b6', '#00d68f', '#ffab00', '#818cf8', '#38bdf8', '#ef4444', '#34d399']
+  const arr: ExplosionParticle[] = []
+  for (let i = 0; i < 100; i++) {
+    const angle = (Math.PI * 2 * i) / 100 + (Math.random() - 0.5) * 0.8
+    const dist = 250 + Math.random() * 600
+    arr.push({
+      id: i,
+      size: 2 + Math.random() * 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tx: Math.cos(angle) * dist,
+      ty: Math.sin(angle) * dist,
+      scale: 0.5 + Math.random() * 1.5,
+      opacity: 0.8 + Math.random() * 0.2,
+      dur: 800 + Math.random() * 1200,
+      delay: Math.random() * 300,
+    })
+  }
+  explosionParticles.value = arr
+}
+
+// 数据矩阵雨
+interface MatrixDrop { x: number; y: number; speed: number; chars: string[]; charIdx: number; len: number }
+let matrixDrops: MatrixDrop[] = []
+
+function initMatrixDrops() {
+  const cols = Math.floor(window.innerWidth / 18)
+  const realEstateChars = '去化率销售额回款库存现金流利润环比成交均价来访转化目标裕华长安桥西刚需改善投资商铺0123456789%亿套/㎡¥'
+  matrixDrops = []
+  for (let i = 0; i < cols; i++) {
+    const len = 8 + Math.floor(Math.random() * 20)
+    const chars: string[] = []
+    for (let j = 0; j < len; j++) {
+      chars.push(realEstateChars[Math.floor(Math.random() * realEstateChars.length)])
+    }
+    matrixDrops.push({
+      x: i * 18,
+      y: Math.random() * -500,
+      speed: 2 + Math.random() * 6,
+      chars,
+      charIdx: Math.floor(Math.random() * len),
+      len,
+    })
+  }
+}
+
+function animateMatrix() {
+  const canvas = matrixCanvas.value
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+
+  ctx.fillStyle = 'rgba(4, 6, 14, 0.12)'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+  for (const d of matrixDrops) {
+    for (let i = 0; i < d.len; i++) {
+      const y = d.y - i * 18
+      if (y < -18 || y > canvas.height + 18) continue
+      const alpha = i === 0 ? 1 : Math.max(0.05, 1 - i / d.len)
+      if (i === 0) {
+        ctx.fillStyle = `rgba(251, 191, 36, ${alpha})`
+        ctx.font = 'bold 14px JetBrains Mono, monospace'
+      } else {
+        ctx.fillStyle = `rgba(96, 165, 250, ${alpha * 0.6})`
+        ctx.font = '13px JetBrains Mono, monospace'
+      }
+      ctx.fillText(d.chars[(d.charIdx + i) % d.len], d.x, y)
+    }
+    d.y += d.speed
+    if (d.y - d.len * 18 > canvas.height) {
+      d.y = Math.random() * -200
+      d.charIdx = Math.floor(Math.random() * d.len)
+    }
+    // randomly mutate a char
+    if (Math.random() < 0.03) {
+      const realEstateChars = '去化率销售额回款库存现金流利润环比成交均价来访转化目标裕华长安桥西刚需改善投资商铺0123456789%亿套/㎡¥'
+      d.chars[d.charIdx] = realEstateChars[Math.floor(Math.random() * realEstateChars.length)]
+    }
+  }
+
+  matrixAnimId = requestAnimationFrame(animateMatrix)
+}
+
+const dashEntrancePlayed = ref(false)
+
+function playDashEntrance() {
+  if (dashEntrancePlayed.value) return
+  dashEntrancePlayed.value = true
+  generateFlyingKPIs()
+  generateExplosionParticles()
+  initMatrixDrops()
+  showDashEntrance.value = true
+  dashScanProgress.value = 0
+  orbitOpacity.value = 0
+  coreOpacity.value = 0
+  coreTransform.value = 'scale(0.3)'
+  explosionOpacity.value = 0
+  explosionTransform.value = 'translate(-50%, -50%) scale(0)'
+  techGridOpacity.value = 0
+  dashTitleOpacity.value = 0
+  dashTitleTransform.value = 'scale(0.8) translateY(20px)'
+
+  nextTick(() => animateMatrix())
+
+  const startTime = performance.now()
+  const totalDuration = 4200
+
+  // 阶段1: 0-1000ms 矩阵雨 + KPI从四周飞入
+  // 阶段2: 1000-2200ms KPI聚合到中心 + 旋转指标环 + 核心形成
+  // 阶段3: 2200-3000ms 核心爆炸 + 冲击波 + 碎片粒子
+  // 阶段4: 2800-3800ms 科技网格 + 标题显现
+  // 阶段5: 3800-4200ms 淡出
+
+  function tick(now: number) {
+    const elapsed = now - startTime
+
+    // 扫描进度 (0-3800ms)
+    const scanT = Math.min(elapsed / 3800, 1)
+    dashScanProgress.value = (1 - Math.pow(1 - scanT, 3)) * 100
+
+    // 旋转指标环 (300ms+)
+    if (elapsed > 300) {
+      const ot = Math.min((elapsed - 300) / 1000, 1)
+      orbitOpacity.value = ot < 0.7 ? ot / 0.7 * 0.8 : 0.8 * (1 - (ot - 0.7) / 0.3)
+    }
+
+    // 聚合核心 (1000ms+)
+    if (elapsed > 1000) {
+      const ct = Math.min((elapsed - 1000) / 800, 1)
+      const eased = 1 - Math.pow(1 - ct, 3)
+      coreOpacity.value = eased < 0.8 ? eased / 0.8 : 1 - (eased - 0.8) / 0.2
+      coreTransform.value = `scale(${0.3 + eased * 2.2})`
+    }
+
+    // 爆炸 (2200ms+)
+    if (elapsed > 2200) {
+      const et = Math.min((elapsed - 2200) / 600, 1)
+      explosionOpacity.value = et < 0.3 ? et / 0.3 : Math.max(0, 1 - (et - 0.3) / 0.7)
+      explosionTransform.value = `translate(-50%, -50%) scale(${et * 8})`
+    }
+
+    // 科技网格 (2000ms+)
+    if (elapsed > 2000) {
+      const gt = Math.min((elapsed - 2000) / 1000, 1)
+      techGridOpacity.value = gt < 0.6 ? gt / 0.6 * 0.5 : 0.5 * (1 - (gt - 0.6) / 0.4)
+    }
+
+    // 标题 (2800ms+)
+    if (elapsed > 2800) {
+      const tt = Math.min((elapsed - 2800) / 800, 1)
+      const eased = 1 - Math.pow(1 - tt, 3)
+      dashTitleOpacity.value = eased
+      dashTitleTransform.value = `scale(${0.8 + eased * 0.2}) translateY(${20 - eased * 20}px)`
+    }
+
+    if (elapsed < totalDuration) {
+      dashAnimFrameId = requestAnimationFrame(tick)
+    } else {
+      cancelAnimationFrame(matrixAnimId)
+      setTimeout(() => {
+        showDashEntrance.value = false
+      }, 300)
+    }
+  }
+
+  dashAnimFrameId = requestAnimationFrame(tick)
+}
+
 onMounted(() => {
   start(store.refreshAll)
   themeStore.applyTheme()
@@ -1017,6 +1375,8 @@ onMounted(() => {
   setTimeout(() => { showSwipeHint.value = false }, 4000)
   startRiskCarousel()
   startHotRefresh()
+  // 总览入场特效
+  nextTick(() => playDashEntrance())
 })
 
 onUnmounted(() => {
@@ -1029,10 +1389,421 @@ onUnmounted(() => {
   window.removeEventListener('touchend', handleTouchEnd)
   window.removeEventListener('wheel', handleWheel)
   window.removeEventListener('keydown', handleKeydown)
+  cancelAnimationFrame(dashAnimFrameId)
+  cancelAnimationFrame(matrixAnimId)
 })
 </script>
 
 <style scoped lang="scss">
+// ===== 总览级入场特效 =====
+.dash-entrance-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #040610;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.matrix-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+// 天际线
+.skyline-silhouette {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.skyline-svg {
+  width: 100%;
+  height: 100%;
+}
+
+// 旋转指标环
+.kpi-orbit-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.orbit-1 {
+  animation: orbitSpin 12s linear infinite;
+}
+
+.orbit-2 {
+  animation: orbitSpin 18s linear infinite reverse;
+}
+
+.orbit-3 {
+  animation: orbitSpin 25s linear infinite;
+}
+
+@keyframes orbitSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.orbit-kpi {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(251, 191, 36, 0.6);
+  padding: 3px 10px;
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  border-radius: 4px;
+  background: rgba(251, 191, 36, 0.04);
+  transform-origin: 0 0;
+
+  &.orbit-kpi-sm {
+    font-size: 9px;
+    color: rgba(96, 165, 250, 0.5);
+    border-color: rgba(96, 165, 250, 0.12);
+    background: rgba(96, 165, 250, 0.03);
+    padding: 2px 8px;
+  }
+
+  &.orbit-kpi-xs {
+    font-size: 8px;
+    color: rgba(0, 229, 255, 0.4);
+    border-color: rgba(0, 229, 255, 0.1);
+    background: rgba(0, 229, 255, 0.02);
+    padding: 2px 6px;
+  }
+}
+
+// 飞入KPI卡片
+.flying-kpi-card {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(15, 18, 25, 0.85);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  will-change: transform, opacity;
+  transition-property: transform, opacity;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.08), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.fkpi-label {
+  font-size: 9px;
+  color: #64748b;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.fkpi-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+// 聚合核心
+.convergence-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.core-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid;
+}
+
+.core-ring-1 {
+  width: 120px;
+  height: 120px;
+  border-color: rgba(251, 191, 36, 0.4);
+  animation: coreRingPulse 1.2s ease-in-out infinite alternate;
+  box-shadow: 0 0 40px rgba(251, 191, 36, 0.2), inset 0 0 30px rgba(251, 191, 36, 0.05);
+}
+
+.core-ring-2 {
+  width: 200px;
+  height: 200px;
+  border-color: rgba(96, 165, 250, 0.25);
+  animation: coreRingPulse 1.2s ease-in-out 0.3s infinite alternate;
+  box-shadow: 0 0 50px rgba(96, 165, 250, 0.1);
+}
+
+.core-ring-3 {
+  width: 300px;
+  height: 300px;
+  border-color: rgba(0, 229, 255, 0.12);
+  animation: coreRingPulse 1.2s ease-in-out 0.6s infinite alternate;
+  box-shadow: 0 0 60px rgba(0, 229, 255, 0.06);
+}
+
+.core-glow {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251,191,36,0.5) 0%, rgba(96,165,250,0.3) 35%, rgba(167,139,250,0.15) 60%, transparent 80%);
+  box-shadow:
+    0 0 80px rgba(251, 191, 36, 0.5),
+    0 0 140px rgba(96, 165, 250, 0.3),
+    0 0 220px rgba(0, 229, 255, 0.15);
+  animation: coreGlowPulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes coreRingPulse {
+  from { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  to { transform: translate(-50%, -50%) scale(1.2); opacity: 0.5; }
+}
+
+@keyframes coreGlowPulse {
+  from { transform: translate(-50%, -50%) scale(1); }
+  to { transform: translate(-50%, -50%) scale(1.4); }
+}
+
+// 爆炸冲击波
+.explosion-wave {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid rgba(251, 191, 36, 0.6);
+  box-shadow:
+    0 0 40px rgba(251, 191, 36, 0.3),
+    inset 0 0 40px rgba(251, 191, 36, 0.1);
+  z-index: 7;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+// 爆炸碎片粒子
+.explosion-particle {
+  position: absolute;
+  border-radius: 50%;
+  z-index: 7;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition-property: transform, opacity;
+}
+
+// 科技网格
+.tech-grid-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.tech-grid-svg {
+  width: 100%;
+  height: 100%;
+  opacity: 0.6;
+}
+
+// 标题区
+.dash-title-area {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  will-change: transform, opacity;
+}
+
+.dash-badge {
+  display: inline-block;
+  padding: 5px 20px;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #fbbf24;
+  letter-spacing: 3px;
+  margin-bottom: 18px;
+  background: rgba(251, 191, 36, 0.06);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.1);
+}
+
+.dash-main-title {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.dash-title-char {
+  display: inline-block;
+  font-size: clamp(28px, 5.5vw, 58px);
+  font-weight: 900;
+  color: #e2e8f0;
+  letter-spacing: 4px;
+  text-shadow:
+    0 0 20px rgba(251, 191, 36, 0.5),
+    0 0 40px rgba(251, 191, 36, 0.25),
+    0 0 80px rgba(96, 165, 250, 0.15);
+  animation: dashCharReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes dashCharReveal {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.5) rotateX(90deg);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+    filter: blur(0);
+  }
+}
+
+.dash-sub-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(10px, 1.5vw, 14px);
+  color: #64748b;
+  letter-spacing: 6px;
+  margin-bottom: 20px;
+}
+
+.dash-kpi-preview {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.dkp-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  animation: dkpGlow 2s ease-in-out infinite alternate;
+  animation-delay: calc(var(--dkp-color, #60a5fa) * 0s);
+}
+
+.dkp-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.dkp-label {
+  font-size: 9px;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+
+@keyframes dkpGlow {
+  from { border-color: rgba(255, 255, 255, 0.06); }
+  to { border-color: rgba(96, 165, 250, 0.2); }
+}
+
+.dash-progress {
+  width: clamp(260px, 42vw, 500px);
+  height: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  margin: 0 auto 10px;
+  overflow: hidden;
+}
+
+.dash-progress-bar {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #fbbf24, #60a5fa, #00e5ff, #a78bfa);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.5);
+  transition: width 0.08s linear;
+}
+
+.dash-percent {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #fbbf24;
+  letter-spacing: 3px;
+}
+
+// HUD角落
+.hud-corner {
+  position: absolute;
+  z-index: 8;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: rgba(96, 165, 250, 0.4);
+  letter-spacing: 1px;
+
+  span {
+    &:nth-child(1) {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(34, 197, 94, 0.6);
+      animation: hudBlink 2s ease-in-out infinite;
+    }
+    &:nth-child(2) {
+      width: 20px;
+      height: 1px;
+      background: rgba(96, 165, 250, 0.2);
+    }
+  }
+}
+
+.hud-tl { left: 24px; top: 24px; }
+.hud-tr { right: 24px; top: 24px; }
+.hud-bl { left: 24px; bottom: 24px; }
+.hud-br { right: 24px; bottom: 24px; }
+
+@keyframes hudBlink {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+// Transition
+.dash-cosmic-enter-active { transition: opacity 0.3s ease-out; }
+.dash-cosmic-leave-active { transition: opacity 0.5s ease-in; }
+.dash-cosmic-enter-from { opacity: 0; }
+.dash-cosmic-leave-to { opacity: 0; }
+
 // ===== Dashboard uses CSS variables for full theme reactivity =====
 .dashboard {
   width: 100vw;

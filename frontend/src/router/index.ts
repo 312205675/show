@@ -24,6 +24,11 @@ const router = createRouter({
       component: () => import('@/views/AIEngineView.vue'),
     },
     {
+      path: '/indicators',
+      name: 'IndicatorOverview',
+      component: () => import('@/views/IndicatorOverview.vue'),
+    },
+    {
       path: '/staff',
       name: 'StaffLayout',
       component: () => import('@/views/StaffLayout.vue'),

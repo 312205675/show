@@ -35,7 +35,7 @@
         </div>
 
         <!-- Central Engine -->
-        <div class="engine-node">
+        <div class="engine-node" @click="goToIndicators" style="cursor: pointer" title="点击查看指标全览">
           <div class="engine-outer-ring" />
           <div class="engine-mid-ring" />
           <div class="engine-core">
@@ -116,7 +116,7 @@
         </router-link>
 
         <!-- BigData Entry -->
-        <router-link to="/bigdata" class="entry-card bigdata-card">
+        <div class="entry-card bigdata-card" @click="navigateWithTransition('bigdata', '/bigdata')">
           <div class="card-glow bigdata-glow" />
           <div class="card-border-anim" />
           <div class="card-content">
@@ -143,10 +143,10 @@
               </svg>
             </div>
           </div>
-        </router-link>
+        </div>
 
         <!-- AI Engine Entry -->
-        <router-link to="/aiengine" class="entry-card ai-card">
+        <div class="entry-card ai-card" @click="navigateWithTransition('ai', '/aiengine')">
           <div class="card-glow ai-glow" />
           <div class="card-border-anim" />
           <div class="card-content">
@@ -172,10 +172,10 @@
               </svg>
             </div>
           </div>
-        </router-link>
+        </div>
 
         <!-- Staff Entry -->
-        <router-link to="/staff" class="entry-card staff-card">
+        <div class="entry-card staff-card" @click="navigateWithTransition('staff', '/staff')">
           <div class="card-glow staff-glow" />
           <div class="card-border-anim" />
           <div class="card-content">
@@ -203,7 +203,7 @@
               </svg>
             </div>
           </div>
-        </router-link>
+        </div>
       </div>
 
       <div class="footer-info">
@@ -216,6 +216,26 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { usePageTransition } from '@/composables/usePageTransition'
+
+const router = useRouter()
+const { transitionActive, startTransition, endTransition } = usePageTransition()
+
+function goToIndicators() {
+  router.push('/indicators')
+}
+
+function navigateWithTransition(type: string, path: string) {
+  if (transitionActive.value) return
+  startTransition(type)
+  setTimeout(() => {
+    router.push(path)
+  }, 1400)
+  setTimeout(() => {
+    endTransition()
+  }, 2000)
+}
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
@@ -602,6 +622,14 @@ onUnmounted(() => {
   box-shadow: 0 0 40px rgba(96, 165, 250, 0.2), 0 0 80px rgba(96, 165, 250, 0.08), inset 0 0 20px rgba(96, 165, 250, 0.1);
   animation: corePulse 3s ease-in-out infinite;
   position: relative;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .engine-node:hover & {
+    border-color: rgba(251, 191, 36, 0.6);
+    color: #fbbf24;
+    box-shadow: 0 0 60px rgba(251, 191, 36, 0.3), 0 0 120px rgba(251, 191, 36, 0.1), inset 0 0 30px rgba(251, 191, 36, 0.15);
+    transform: scale(1.08);
+  }
 }
 
 @keyframes corePulse {
@@ -733,6 +761,7 @@ onUnmounted(() => {
   text-decoration: none;
   color: inherit;
   overflow: hidden;
+  cursor: pointer;
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   animation: cardAppear 0.7s ease-out both;
 
