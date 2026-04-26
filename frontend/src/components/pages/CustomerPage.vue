@@ -162,7 +162,7 @@ import Bar3DChart from '@/components/charts/Bar3DChart.vue'
 import ChartWrapper from '@/components/common/ChartWrapper.vue'
 import PeriodSelector from '@/components/common/PeriodSelector.vue'
 
-const props = withDefaults(defineProps<{ viewMode?: '2d' | '3d'; period?: 'day' | 'week' | 'month' | 'year' }>(), { viewMode: '2d', period: 'month' })
+const props = withDefaults(defineProps<{ isActive?: boolean; viewMode?: '2d' | '3d'; period?: 'day' | 'week' | 'month' | 'year' }>(), { viewMode: '2d', period: 'month' })
 
 const localPeriod = ref<'day' | 'week' | 'month' | 'year'>(props.period || 'month')
 watch(() => props.period, v => { if (v) localPeriod.value = v })

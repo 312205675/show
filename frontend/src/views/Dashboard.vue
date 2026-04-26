@@ -498,9 +498,9 @@
         </div>
 
         <!-- Page 1-6: Drill-down Pages -->
-        <div v-for="page in drillPages" :key="page.key" class="page-slide">
+        <div v-for="(page, idx) in drillPages" :key="page.key" class="page-slide">
           <div class="slide-content drill-layout">
-            <component :is="page.component" :view-mode="themeStore.viewMode" :period="period" />
+            <component :is="page.component" :view-mode="themeStore.viewMode" :period="period" :is-active="currentPage === idx + 1" />
           </div>
         </div>
       </div>
@@ -636,7 +636,6 @@ const FunnelPage = markRaw(defineAsyncComponent(() => import('@/components/pages
 const InventoryPage = markRaw(defineAsyncComponent(() => import('@/components/pages/InventoryPage.vue')))
 const RegionPage = markRaw(defineAsyncComponent(() => import('@/components/pages/RegionPage.vue')))
 const BigDataPage = markRaw(defineAsyncComponent(() => import('@/components/pages/BigDataPage.vue')))
-const AIEnginePage = markRaw(defineAsyncComponent(() => import('@/components/pages/AIEnginePage.vue')))
 
 interface PageDef {
   key: string
@@ -654,8 +653,10 @@ const pages = ref<PageDef[]>([
   { key: 'customer', label: '客户画像', icon: '◎', component: CustomerPage },
   { key: 'funnel', label: '销售漏斗', icon: '▽', component: FunnelPage },
   { key: 'bigdata', label: '大数据平台', icon: '⬢', component: BigDataPage },
-  { key: 'aiengine', label: 'AI引擎', icon: '⬟', component: AIEnginePage },
 ])
+
+// ⛔ 受限页面：不允许在驾驶舱内滑动访问，只能从首页进入
+const RESTRICTED_PAGES = ['aiengine', 'staff']
 
 const drillPages = computed(() => pages.value.slice(1))
 
@@ -772,9 +773,9 @@ function toggleFs(key: string) {
   if (fsKey.value) playExpandSound()
 }
 
-// Handle tab reorder from PageNav
+// Handle tab reorder from PageNav — 阻止受限页面混入
 function onReorderPages(newPages: PageDef[]) {
-  pages.value = newPages
+  pages.value = newPages.filter(p => !RESTRICTED_PAGES.includes(p.key))
 }
 
 // Real-time clock
@@ -910,6 +911,8 @@ const globeMarkers = computed(() => {
 })
 
 function switchPage(idx: number) {
+  const target = pages.value[idx]
+  if (!target || RESTRICTED_PAGES.includes(target.key)) return
   if (idx === currentPage.value) return
   isPageTransitioning.value = true
   currentPage.value = idx

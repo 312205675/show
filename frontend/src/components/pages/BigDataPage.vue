@@ -138,6 +138,8 @@
 </template>
 
 <script setup lang="ts">
+defineProps<{ isActive?: boolean }>()
+
 const dataSources = [
   { name: '售楼ERP', icon: '🏢', tag: '业务系统', color: '#60a5fa' },
   { name: '物业系统', icon: '🏠', tag: '物联数据', color: '#22c55e' },

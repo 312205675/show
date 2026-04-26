@@ -139,6 +139,7 @@ import ChartWrapper from '@/components/common/ChartWrapper.vue'
 import PeriodSelector from '@/components/common/PeriodSelector.vue'
 
 const props = withDefaults(defineProps<{
+  isActive?: boolean
   viewMode?: '2d' | '3d'
   period?: 'day' | 'week' | 'month' | 'year'
 }>(), {
